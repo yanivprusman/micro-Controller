@@ -17,90 +17,119 @@ char *TAG = "BLE-Server tag ";
 uint8_t ble_addr_type;
 void ble_app_advertise(void);
 
-// Write data to ESP32 defined as server
-static int device_write(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
-{
-    printf("Data from the client: %.*s\n", ctxt->om->om_len, ctxt->om->om_data);
-    return 0;
-}
-
-#define NVS_SSID_KEY "ssid"
+#define NVS_DATA_KEY "data"
+#define DEFAULT_VALUE "newMyRemoteDevice"
 #define BLE_GATT_ACCESS_OP_READ 0
 #define BLE_GATT_ACCESS_OP_WRITE 1
-#define MAX_SSID_LENGTH 32  // Example maximum length of SSID
+#define MAX_DATA_LENGTH 100  
 
-char ssid[MAX_SSID_LENGTH + 1];  // Buffer to store SSID (+1 for null terminator)
+char data[MAX_DATA_LENGTH + 1];  // Buffer to store data (+1 for null terminator)
 
-static int write_ssid(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
+static int write_data(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
     if (ctxt->op == BLE_GATT_ACCESS_OP_READ) {
         // Handle read operation
-        os_mbuf_append(ctxt->om, ssid, strlen(ssid));
+        os_mbuf_append(ctxt->om, data, strlen(data));
     } else if (ctxt->op == BLE_GATT_ACCESS_OP_WRITE) {
         // Handle write operation
         int len = ctxt->om->om_len;
-        if (len > MAX_SSID_LENGTH) {
-            // Truncate if the received SSID is longer than the maximum length
-            len = MAX_SSID_LENGTH;
+        if (len > MAX_DATA_LENGTH) {
+            // Truncate if the received data is longer than the maximum length
+            len = MAX_DATA_LENGTH;
         }
-        // Copy the SSID from the received buffer to the ssid variable
-        memcpy(ssid, ctxt->om->om_data, len);
+        // Copy the data from the received buffer to the data variable
+        memcpy(data, ctxt->om->om_data, len);
         // Null-terminate the string
-        ssid[len] = '\0';
-        // Save the SSID to NVS
+        data[len] = '\0';
+        // Save the data to NVS
         nvs_handle_t nvs_handle;
         nvs_open("storage", NVS_READWRITE, &nvs_handle);
-        nvs_set_str(nvs_handle, NVS_SSID_KEY, ssid);
+        nvs_set_str(nvs_handle, NVS_DATA_KEY, data);
         nvs_commit(nvs_handle);
         nvs_close(nvs_handle);
-        printf("ssid from the client: %.*s\n", ctxt->om->om_len, ctxt->om->om_data);
+        printf("data from the client: %.*s\n", ctxt->om->om_len, ctxt->om->om_data);
     }
     return 0;
 }
-static int read_ssid(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
+
+
+void write_default_value_to_nvs(nvs_handle_t nvs_handle) {
+    esp_err_t err = nvs_set_str(nvs_handle, NVS_DATA_KEY, DEFAULT_VALUE);
+    if (err != ESP_OK) {
+        printf("Error writing default value: %s\n", esp_err_to_name(err));
+        return;
+    }
+
+    err = nvs_commit(nvs_handle);
+    if (err != ESP_OK) {
+        printf("Error committing default value: %s\n", esp_err_to_name(err));
+        return;
+    }
+
+    printf("Default value written successfully.\n");
+}
+static int read_data(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
     if (ctxt->op == BLE_GATT_ACCESS_OP_READ) {
-        // Handle read operation
         nvs_handle_t nvs_handle;
         esp_err_t err = nvs_open("storage", NVS_READONLY, &nvs_handle);
         if (err != ESP_OK) {
+            printf("error reading data nvs_open \n");
             return BLE_ATT_ERR_INSUFFICIENT_RES;
         }
         
-        size_t ssid_len;
-        err = nvs_get_str(nvs_handle, NVS_SSID_KEY, NULL, &ssid_len);
-        if (err != ESP_OK) {
+        size_t data_len;
+        err = nvs_get_str(nvs_handle, NVS_DATA_KEY, NULL, &data_len);
+    if (err != ESP_OK) {
+        if (err == ESP_ERR_NVS_NOT_FOUND) {
+            printf("Key not found. Writing default value.\n");
             nvs_close(nvs_handle);
-            return BLE_ATT_ERR_INSUFFICIENT_RES;
+            // Re-open NVS handle in read-write mode to write the default value
+            err = nvs_open("storage", NVS_READWRITE, &nvs_handle);
+            if (err != ESP_OK) {
+                printf("Error opening NVS handle in read-write mode: %s\n", esp_err_to_name(err));
+                return 0;
+            }
+            write_default_value_to_nvs(nvs_handle);
+            // Re-open NVS handle in read-only mode to read the data again
+            nvs_close(nvs_handle);
+            err = nvs_open("storage", NVS_READONLY, &nvs_handle);
+            if (err != ESP_OK) {
+                printf("Error opening NVS handle in read-only mode: %s\n", esp_err_to_name(err));
+                return 0;
+            }
+            // Try reading the data again after writing the default value
+            err = nvs_get_str(nvs_handle, NVS_DATA_KEY, NULL, &data_len);
+            if (err != ESP_OK) {
+                printf("Error reading data length after writing default: %s\n", esp_err_to_name(err));
+                nvs_close(nvs_handle);
+                return 0;
+            }
+        } else {
+            printf("Error reading data length: %s\n", esp_err_to_name(err));
+            nvs_close(nvs_handle);
+            return 0;
         }
-        
-        char *ssid = malloc(ssid_len + 1); // Allocate memory for the SSID string
-        if (ssid == NULL) {
+    }        char *data = malloc(data_len + 1); // Allocate memory for the data string
+        if (data == NULL) {
             nvs_close(nvs_handle);
             return BLE_ATT_ERR_INSUFFICIENT_RES;
         }
 
-        err = nvs_get_str(nvs_handle, NVS_SSID_KEY, ssid, &ssid_len);
+        err = nvs_get_str(nvs_handle, NVS_DATA_KEY, data, &data_len);
         if (err != ESP_OK) {
-            free(ssid);
+            free(data);
             nvs_close(nvs_handle);
             return BLE_ATT_ERR_INSUFFICIENT_RES;
         }
         
         nvs_close(nvs_handle);
-        // Append the SSID to the response buffer
-        os_mbuf_append(ctxt->om, ssid, ssid_len);
-        free(ssid); // Free the allocated memory
-        printf("ssid from the esp storage: %.*s\n", ctxt->om->om_len, ctxt->om->om_data);
+        // Append the data to the response buffer
+        os_mbuf_append(ctxt->om, data, data_len);
+        free(data); // Free the allocated memory
+        printf("data from the esp storage: %.*s\n", ctxt->om->om_len, ctxt->om->om_data);
 
     }
-    return 0;
-}
-
-// Read data from ESP32 defined as server
-static int device_read(uint16_t con_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
-{
-    os_mbuf_append(ctxt->om, "Data from the server", strlen("Data from the server"));
     return 0;
 }
 
@@ -112,10 +141,10 @@ static const struct ble_gatt_svc_def gatt_svcs[] = {
      .characteristics = (struct ble_gatt_chr_def[]){
          {.uuid = BLE_UUID16_DECLARE(0xFEF4),           // Define UUID for reading
           .flags = BLE_GATT_CHR_F_READ,
-          .access_cb = read_ssid},
+          .access_cb = read_data},
          {.uuid = BLE_UUID16_DECLARE(0xFEF5),           // Define UUID for reading
           .flags = BLE_GATT_CHR_F_WRITE,
-          .access_cb = write_ssid},
+          .access_cb = write_data},
         {0}}},
     {0}};
 
@@ -135,6 +164,11 @@ static int ble_gap_event(struct ble_gap_event *event, void *arg)
     // Advertise again after completion of the event
     case BLE_GAP_EVENT_ADV_COMPLETE:
         ESP_LOGI("GAP", "BLE GAP EVENT");
+        ble_app_advertise();
+        break;
+    case BLE_GAP_EVENT_DISCONNECT:
+        ESP_LOGI("GAP", "BLE GAP EVENT DISCONNECT reason: %d", event->disconnect.reason);
+        vTaskDelay(pdMS_TO_TICKS(1000));
         ble_app_advertise();
         break;
     default:
