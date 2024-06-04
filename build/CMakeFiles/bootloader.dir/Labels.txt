@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+C:/101_coding/102_esp/EXAMPLES/gatt_server/build/CMakeFiles/bootloader
+C:/101_coding/102_esp/EXAMPLES/gatt_server/build/CMakeFiles/bootloader.rule
+C:/101_coding/102_esp/EXAMPLES/gatt_server/build/CMakeFiles/bootloader-complete.rule
+C:/101_coding/102_esp/EXAMPLES/gatt_server/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
+C:/101_coding/102_esp/EXAMPLES/gatt_server/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+C:/101_coding/102_esp/EXAMPLES/gatt_server/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+C:/101_coding/102_esp/EXAMPLES/gatt_server/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+C:/101_coding/102_esp/EXAMPLES/gatt_server/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+C:/101_coding/102_esp/EXAMPLES/gatt_server/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+C:/101_coding/102_esp/EXAMPLES/gatt_server/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
