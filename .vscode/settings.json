@@ -3,6 +3,8 @@
   "idf.flashType": "UART",
   "idf.adapterTargetName": "esp32",
   "files.associations": {
-    "ble_svc_gatt.h": "c"
+    "ble_svc_gatt.h": "c",
+    "stdio.h": "c",
+    "cjson.h": "c"
   }
 }
