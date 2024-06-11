@@ -12,16 +12,91 @@
 #include "services/gap/ble_svc_gap.h"
 #include "services/gatt/ble_svc_gatt.h"
 #include "sdkconfig.h"
+#include "cJSON.h"
 
 char *TAG = "BLE-Server tag ";
 uint8_t ble_addr_type;
 void ble_app_advertise(void);
 
 #define NVS_DATA_KEY "data"
-#define DEFAULT_VALUE "{\"ssidName\":\"defaultSSID\",\"ssidPassword\":\"defaultPass\",\"remoteDeviceName\":\"defaultDevice\"}"
+#define DEFAULT_VALUE "{\"ssidName\":\"defaultSSID\",\"ssidPassword\":\"defaultPass\",\"remoteDeviceName\":\"MyRemoteDevice\"}"
 #define MAX_DATA_LENGTH 100  
 
-char data[MAX_DATA_LENGTH + 1];  // Buffer to store data (+1 for null terminator)
+char data[MAX_DATA_LENGTH + 1]; 
+
+char* ssidName = NULL;
+char* ssidPassword = NULL;
+char* myRemoteDeviceName = NULL;
+
+void parseJson(){
+    esp_err_t err;
+    
+    err = nvs_flash_init();
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Error initializing NVS: %s", esp_err_to_name(err));
+        return;
+    }
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+    nvs_handle_t my_handle;
+    err = nvs_open("storage", NVS_READWRITE, &my_handle);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Error opening NVS handle: %s", esp_err_to_name(err));
+        return;
+    }
+
+    size_t required_size = 0;
+    err = nvs_get_str(my_handle, "data", NULL, &required_size);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Error getting data size: %s", esp_err_to_name(err));
+        nvs_close(my_handle);
+        return;
+    }
+
+    char *data = malloc(required_size);
+    if (data == NULL) {
+        ESP_LOGE(TAG, "Error allocating memory for data");
+        nvs_close(my_handle);
+        return;
+    }
+
+    err = nvs_get_str(my_handle, "data", data, &required_size);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Error getting data: %s", esp_err_to_name(err));
+        free(data);
+        nvs_close(my_handle);
+        return;
+    }
+
+    cJSON *json = cJSON_Parse(data);
+    if (json == NULL) {
+        ESP_LOGE(TAG, "Error parsing JSON: %s", cJSON_GetErrorPtr());
+        free(data);
+        nvs_close(my_handle);
+        return;
+    }
+
+    cJSON *cJsonSsidName = cJSON_GetObjectItemCaseSensitive(json, "ssidName");
+    cJSON *cJsonSsidPassword = cJSON_GetObjectItemCaseSensitive(json, "ssidPassword");
+    cJSON *cJsonMyRemoteDeviceName = cJSON_GetObjectItemCaseSensitive(json, "myRemoteDeviceName");
+
+    if (cJSON_IsString(cJsonSsidName) && (cJsonSsidName->valuestring != NULL)) {
+        if (ssidName) free(ssidName);
+        ssidName = strdup(cJsonSsidName->valuestring);
+    }
+    if (cJSON_IsString(cJsonSsidPassword) && (cJsonSsidPassword->valuestring != NULL)) {
+        if (ssidPassword) free(ssidPassword);
+        ssidPassword = strdup(cJsonSsidPassword->valuestring);
+    }
+    if (cJSON_IsString(cJsonMyRemoteDeviceName) && (cJsonMyRemoteDeviceName->valuestring != NULL)) {
+        if (myRemoteDeviceName) free(myRemoteDeviceName);
+        myRemoteDeviceName = strdup(cJsonMyRemoteDeviceName->valuestring);
+    }
+
+    cJSON_Delete(json);
+    free(data);
+    nvs_close(my_handle);
+}
 
 static int write_data(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
@@ -48,9 +123,29 @@ static int write_data(uint16_t conn_handle, uint16_t attr_handle, struct ble_gat
 
 static int read_data(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
-    // Handle read operation
-    os_mbuf_append(ctxt->om, data, strlen(data));
-    printf("data from the esp storage: %s\n", data);
+    parseJson();
+    ble_svc_gap_device_name_set(myRemoteDeviceName);
+    cJSON *json_response = cJSON_CreateObject();
+    if (json_response == NULL) {
+        printf("Failed to create JSON object\n");
+        return -1;
+    }
+
+    cJSON_AddStringToObject(json_response, "myRemoteDeviceName", myRemoteDeviceName);
+
+    char *json_string = cJSON_PrintUnformatted(json_response);
+    if (json_string == NULL) {
+        printf("Failed to print JSON string\n");
+        cJSON_Delete(json_response);
+        return -1;
+    }
+
+    printf("JSON Response: %s\n", json_string);
+    os_mbuf_append(ctxt->om, json_string, strlen(json_string));
+
+    cJSON_Delete(json_response);
+    free(json_string);
+
     return 0;
 }
 
@@ -114,6 +209,8 @@ void ble_app_advertise(void)
     struct ble_hs_adv_fields fields;
     const char *device_name;
     memset(&fields, 0, sizeof(fields));
+    parseJson();
+    ble_svc_gap_device_name_set(myRemoteDeviceName);
     device_name = ble_svc_gap_device_name();
     fields.name = (uint8_t *)device_name;
     fields.name_len = strlen(device_name);
@@ -169,8 +266,9 @@ void app_main()
     nvs_close(nvs_handle);
 
     nimble_port_init();
-    ble_svc_gap_device_name_set("MyRemoteDevice1");
-    // ble_svc_gap_device_name_set("1234567890ABCDEF12345");
+    parseJson();
+    ble_svc_gap_device_name_set(myRemoteDeviceName);
+    // ble_svc_gap_device_name_set("MyRemoteDevice1");
     ble_svc_gap_init();
     ble_svc_gatt_init();
     ble_gatts_count_cfg(gatt_svcs);
@@ -178,12 +276,8 @@ void app_main()
     ble_hs_cfg.sync_cb = ble_app_on_sync;
     nimble_port_freertos_init(host_task);
 }
-#include "cJSON.h"
 void app2(void)
 {
-    char* ssidName = "";
-    char* ssidPassword = "";
-    char* myRemoteDeviceName = "";
     nvs_flash_init();
     vTaskDelay(1000 / portTICK_PERIOD_MS);
 
@@ -194,30 +288,11 @@ void app2(void)
     nvs_get_str(my_handle, "data", NULL, &required_size);
     char *data = malloc(required_size);
     nvs_get_str(my_handle, "data", data, &required_size);
+    parseJson();
     printf("Read data: %s\n", data);
-    cJSON *json = cJSON_Parse(data);
-    if (json == NULL) {
-        ESP_LOGE(TAG, "Error parsing JSON: %s", cJSON_GetErrorPtr());
-        // Handle the error appropriately (e.g., restart parsing, notify user)
-        return;
-    };
-
-    cJSON * cJsonSsidName = cJSON_GetObjectItemCaseSensitive(json, "ssidName");
-    cJSON * cJsonSsidPassword = cJSON_GetObjectItemCaseSensitive(json, "ssidPassword");
-    cJSON * cJsonMyRemoteDeviceName = cJSON_GetObjectItemCaseSensitive(json, "myRemoteDeviceName");
-    if (cJSON_IsString(cJsonSsidName) && (cJsonSsidName->valuestring != NULL)){
-        ssidName = cJsonSsidName->valuestring;
-    }
-    if (cJSON_IsString(cJsonSsidPassword) && (cJsonSsidPassword->valuestring != NULL)){
-        ssidPassword = cJsonSsidPassword->valuestring;
-    }
-    if (cJSON_IsString(cJsonMyRemoteDeviceName) && (cJsonMyRemoteDeviceName->valuestring != NULL)){
-        myRemoteDeviceName = cJsonMyRemoteDeviceName->valuestring;
-    }
     printf( "ssidName: %s\n", ssidName);
     printf( "ssidPassword: %s\n", ssidPassword);
     printf( "myRemoteDeviceName: %s\n", myRemoteDeviceName);
-    cJSON_Delete(json);
 
 
     // Write data, key - "data", value - "write_string"

@@ -5,6 +5,7 @@
   "files.associations": {
     "ble_svc_gatt.h": "c",
     "stdio.h": "c",
-    "cjson.h": "c"
+    "cjson.h": "c",
+    "task.h": "c"
   }
 }
