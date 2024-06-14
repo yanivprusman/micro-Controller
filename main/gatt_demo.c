@@ -19,6 +19,7 @@ uint8_t ble_addr_type;
 void ble_app_advertise(void);
 
 #define NVS_DATA_KEY "data"
+#define NVS_INITIALIZED_KEY "data"
 #define DEFAULT_VALUE "{\"initialized\":\"not initialized\",\"ssidName\":\"defaultSSID\",\"ssidPassword\":\"defaultPass\",\"myRemoteDeviceName\":\"MyRemoteDevice\"}"
 #define MAX_DATA_LENGTH 1000  
 
