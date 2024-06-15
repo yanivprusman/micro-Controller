@@ -19,9 +19,8 @@ uint8_t ble_addr_type;
 void ble_app_advertise(void);
 
 #define NUM_VARIABLES (sizeof(variables) / sizeof(variables[0]))
-
-char* initializedFalseString = "not initialized";
-char* initializedTrueString = "initialized";
+#define INITIALIZED_FALSE_STRING "not initialized"
+#define INITIALIZED_TRUE_STRING "initialized"
 
 const uint8_t initializedCustomDataTrue[4]  = {0xDF, 0xAD, 0xBE, 0xEF};
 const uint8_t initializedCustomDataFalse[4] = {0xDF, 0xAD, 0xBE, 0xEE};
@@ -33,11 +32,32 @@ typedef struct {
     const char *nvsKey;
     const char *defaultValue;
 } variables_t;
-variables_t initialized = {"initialized",NULL,"var_1","not initialized"},
-    ssidName={"ssidName",NULL,"var_2",""},
-    ssidPassword={"ssidPassword",NULL,"var_3",""},
-    myRemoteDeviceName={"myRemoteDeviceName",NULL,"var_4","MyRemoteDevice"},
-    myRemoteDeviceID={"myRemoteDeviceID",NULL,"var_5",""};
+variables_t 
+    initialized = {
+        "initialized",
+        NULL,
+        "var_1",
+        INITIALIZED_FALSE_STRING},
+    ssidName={
+        "ssidName",
+        NULL,
+        "var_2",
+        ""},
+    ssidPassword={
+        "ssidPassword",
+        NULL,
+        "var_3",
+        ""},
+    myRemoteDeviceName={
+        "myRemoteDeviceName",
+        NULL,
+        "var_4",
+        "MyRemoteDevice"},
+    myRemoteDeviceID={
+        "myRemoteDeviceID",
+        NULL,
+        "var_5",
+        ""};
 variables_t * variables[]={&initialized,&ssidName,&ssidPassword,&myRemoteDeviceName,&myRemoteDeviceID};
 
 void printVariables(){
@@ -49,6 +69,9 @@ void printVariables(){
 }
 
 void fillVariablseFromJsonString(char* data){
+    printf("B4\n");
+    printf("in fill variables from json string.data = %s\n",data);
+    printf("after\n");
     cJSON *json = cJSON_Parse(data);
     if (json == NULL) {
         ESP_LOGE(TAG, "Error parsing JSON: %s", cJSON_GetErrorPtr());
@@ -61,7 +84,9 @@ void fillVariablseFromJsonString(char* data){
             variables[i]->value = strdup(got->valuestring);
         }
     }
+    // printf("in fill variables from json string.json = %s\n","");
     cJSON_Delete(json);
+
 }
 
 void readVariablesFromNvs(){
@@ -109,41 +134,43 @@ void writeVariablesToNvs(){
     nvs_close(storage);
 }
 
-static int write_data(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
+static int theCallBack(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
-    // Handle write operation
-    // int len = ctxt->om->om_len;
-    // if (len > MAX_DATA_LENGTH) {
-    //     // Truncate if the received data is longer than the maximum length
-    //     len = MAX_DATA_LENGTH;
-    // }
-    // Copy the data from the received buffer to the data variable
-    // memcpy(data, ctxt->om->om_data, len);
-    // Null-terminate the string
-    // data[len] = '\0';  
-    fillVariablseFromJsonString((char *) ctxt->om->om_data);
-    writeVariablesToNvs();
-    // nvs_handle_t nvs_handle;
-    // nvs_open("storage", NVS_READWRITE, &nvs_handle);
-    // if (initialized != NULL){
-    //     nvs_set_str(nvs_handle, NVS_INITIALIZED, initialized);
-    // };
-    // if (ssidName != NULL){
-    //     nvs_set_str(nvs_handle, NVS_SSIDNAME, ssidName);
-    // };
-    // if (ssidPassword != NULL){
-    //     nvs_set_str(nvs_handle, NVS_SSIDPASSWORD, ssidPassword);
-    // };
-    // if (myRemoteDeviceName != NULL){
-    //     nvs_set_str(nvs_handle, NVS_MYREMOTEDEVICE_NAME, myRemoteDeviceName);
-    // };
-    // if (myRemoteDeviceID != NULL){
-    //     nvs_set_str(nvs_handle, NVS_MYREMOTEDEVICE_ID, myRemoteDeviceID);
-    // };
-    // nvs_commit(nvs_handle);
-    // nvs_close(nvs_handle);
-    // printf("data from the client: %.*s\n", len, data);
+        readVariablesFromNvs();
+        switch (ctxt->op) {
+        case BLE_GATT_ACCESS_OP_READ_CHR:
+            cJSON *json_response = cJSON_CreateObject();
+            if (json_response == NULL) {
+                printf("Failed to create JSON object\n");
+                return -1;
+            }
+            cJSON_AddStringToObject(json_response, myRemoteDeviceName.name, myRemoteDeviceName.value);
+            cJSON_AddStringToObject(json_response, myRemoteDeviceID.name, myRemoteDeviceID.value);
+            cJSON_AddStringToObject(json_response, initialized.name, initialized.value);
 
+            char *json_string = cJSON_PrintUnformatted(json_response);
+            if (json_string == NULL) {
+                printf("Failed to print JSON string\n");
+                cJSON_Delete(json_response);
+                return -1;
+            }
+
+            printf("JSON Response: %s\n", json_string);
+            os_mbuf_append(ctxt->om, json_string, strlen(json_string));
+            cJSON_Delete(json_response);
+            free(json_string);
+            return 0;
+
+        case BLE_GATT_ACCESS_OP_WRITE_CHR:
+            fillVariablseFromJsonString((char *) ctxt->om->om_data);
+            initialized.value = INITIALIZED_TRUE_STRING;
+            writeVariablesToNvs();
+            printVariables();
+            return 0;
+
+        default:
+            return BLE_ATT_ERR_UNLIKELY;
+    }
     return 0;
 }
 
@@ -182,10 +209,11 @@ static const struct ble_gatt_svc_def gatt_svcs[] = {
           .flags = BLE_GATT_CHR_F_READ,
           .access_cb = read_data},
          {.uuid = BLE_UUID16_DECLARE(0xFEF5),           // Define UUID for writing
-          .flags = BLE_GATT_CHR_F_WRITE,
-          .access_cb = write_data},
+          .flags = BLE_GATT_CHR_F_WRITE|BLE_GATT_CHR_F_READ,
+          .access_cb = theCallBack},
         {0}}},
-    {0}};
+    {0}
+};
 
 static int ble_gap_event(struct ble_gap_event *event, void *arg)
 {
@@ -228,9 +256,9 @@ void ble_app_advertise(void)
     uint16_t company_id = 0xFFFA;
     
     uint8_t custom_data[4];
-    if (strcmp(initialized.value, initializedTrueString) == 0){
+    if (strcmp(initialized.value, INITIALIZED_TRUE_STRING) == 0){
         memcpy(custom_data, initializedCustomDataTrue, sizeof(initializedCustomDataTrue));
-    }else if (strcmp(initialized.value, initializedFalseString) == 0){
+    }else if (strcmp(initialized.value, INITIALIZED_FALSE_STRING) == 0){
         memcpy(custom_data, initializedCustomDataFalse, sizeof(initializedCustomDataFalse));
     }
     uint8_t mfg_data[sizeof(company_id) + sizeof(custom_data)];
@@ -359,9 +387,11 @@ void app_main()
 
 void app2(void)
 {
+    nvs_flash_init();
+    writeDefaultValues();     
+    return;   
     printf("B4 initialize()\n");
     // initialize();
-    nvs_flash_init();
     printf("B4 read vriables from nvs\n");
     readVariablesFromNvs();
     printf("B4 check if variables are empty\n");
