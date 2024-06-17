@@ -22,9 +22,8 @@ void ble_app_advertise(void);
 #define INITIALIZED_FALSE_STRING "not initialized"
 #define INITIALIZED_TRUE_STRING "initialized"
 
-const uint8_t initializedCustomDataTrue[4]  = {0xDF, 0xAD, 0xBE, 0xEF};
+const uint8_t initializedCustomDataTrue[4]  = {0x0, 0x0, 0x0, 0x0};
 const uint8_t initializedCustomDataFalse[4] = {0xDF, 0xAD, 0xBE, 0xEE};
-
 
 typedef struct {
     char *name;
@@ -59,6 +58,9 @@ variables_t
         "var_5",
         ""};
 variables_t * variables[]={&initialized,&ssidName,&ssidPassword,&myRemoteDeviceName,&myRemoteDeviceID};
+#define DEVICE_TYPE_UUID BLE_UUID16_DECLARE(0x180)
+#define INITIALIZED_CHAR_UUID BLE_UUID16_DECLARE(0xFEF4)
+#define UNINITIALIZED_CHAR_UUID BLE_UUID16_DECLARE(0xFEF5)
 
 void printVariables(){
     for (int i = 0;i < NUM_VARIABLES;i++){
@@ -134,7 +136,7 @@ void writeVariablesToNvs(){
     nvs_close(storage);
 }
 
-static int theCallBack(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
+static int uninitializedCallback(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
         readVariablesFromNvs();
         switch (ctxt->op) {
@@ -174,7 +176,7 @@ static int theCallBack(uint16_t conn_handle, uint16_t attr_handle, struct ble_ga
     return 0;
 }
 
-static int read_data(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
+static int initializedCallback(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
     // ble_svc_gap_device_name_set(myRemoteDeviceName);
     cJSON *json_response = cJSON_CreateObject();
@@ -203,14 +205,14 @@ static int read_data(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt
 
 static const struct ble_gatt_svc_def gatt_svcs[] = {
     {.type = BLE_GATT_SVC_TYPE_PRIMARY,
-     .uuid = BLE_UUID16_DECLARE(0x180),                 // Define UUID for device type
+     .uuid = DEVICE_TYPE_UUID,                
      .characteristics = (struct ble_gatt_chr_def[]){
-         {.uuid = BLE_UUID16_DECLARE(0xFEF4),           // Define UUID for reading
-          .flags = BLE_GATT_CHR_F_READ,
-          .access_cb = read_data},
-         {.uuid = BLE_UUID16_DECLARE(0xFEF5),           // Define UUID for writing
+         {.uuid = INITIALIZED_CHAR_UUID,
           .flags = BLE_GATT_CHR_F_WRITE|BLE_GATT_CHR_F_READ,
-          .access_cb = theCallBack},
+          .access_cb = initializedCallback},
+         {.uuid = UNINITIALIZED_CHAR_UUID,           // Define UUID for writing
+          .flags = BLE_GATT_CHR_F_WRITE|BLE_GATT_CHR_F_READ,
+          .access_cb = uninitializedCallback},
         {0}}},
     {0}
 };
@@ -322,12 +324,7 @@ bool variablesAreEmpty(){
     }
     return empty;
 }
-
-// void initialize(){
-//     for (size_t i = 0; i < NUM_VARIABLES; ++i) {
-//         variables[i]->value = NULL;
-//     }
-// }
+#include "driver/gpio.h"
 
 void app_main()
 {
@@ -339,8 +336,6 @@ void app_main()
         writeDefaultValues();        
     }
     nimble_port_init();
-    // ble_svc_gap_device_name_set(myRemoteDeviceName);
-    // ble_svc_gap_device_name_set("MyRemoteDevice1");
     ble_svc_gap_init();
     ble_svc_gatt_init();
     ble_gatts_count_cfg(gatt_svcs);
@@ -385,20 +380,10 @@ void app_main()
 //     nvs_close(nvs_handle);
 // }
 
-void app2(void)
-{
-    nvs_flash_init();
-    writeDefaultValues();     
-    return;   
-    printf("B4 initialize()\n");
-    // initialize();
-    printf("B4 read vriables from nvs\n");
-    readVariablesFromNvs();
-    printf("B4 check if variables are empty\n");
-    if(variablesAreEmpty()){
-        printf("variables are empty B4 writing default values\n");
-        writeDefaultValues();        
+void app2() {
+    int x = 18;
+    for(;;){
+        printf("%d\n",x);
+        x++;
     }
-    printf("printing values:\n");
-    printVariables();
 }

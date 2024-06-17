@@ -1,11 +1,36 @@
 {
   "version": "0.2.0",
   "configurations": [
-   
     {
-      "type": "espidf",
-      "name": "Launch",
-      "request": "launch"
+      "name": "ESP-IDF GDB",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/gatt_server_demos.elf",
+      "cwd": "${workspaceFolder}",
+      "miDebuggerPath": "C:\\101_coding\\programs\\esp-idf\\tools\\xtensa-esp-elf\\esp-13.2.0_20240305\\xtensa-esp-elf\\bin\\xtensa-esp32-elf-gdb.exe",
+      "miDebuggerServerAddress": "localhost:3333",
+      "setupCommands": [
+          {
+              "description": "Enable pretty-printing for gdb",
+              "text": "-enable-pretty-printing",
+              "ignoreFailures": true
+          }
+      ],
+      "logging": {
+          "moduleLoad": false,
+          "trace": true,
+          "engineLogging": false,
+          "programOutput": true,
+          "exceptions": true
+      },
+      "externalConsole": false,
+      "debugServerPath": "C:\\101_coding\\programs\\esp-idf\\tools\\openocd-esp32\\v0.12.0-esp32-20240318\\openocd-esp32\\bin\\openocd.exe",
+      "debugServerArgs": "-f board/esp32-wrover-kit-3.3v.cfg",
+      "serverStarted": "Info : JTAG tap: esp32.cpu0",
+      "filterStdout": true,
+      "filterStderr": false,
+      "preLaunchTask": "idf: build",
+      "targetArchitecture": "xtensa"
     }
   ]
 }
