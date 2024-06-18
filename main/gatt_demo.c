@@ -22,7 +22,7 @@ void ble_app_advertise(void);
 #define INITIALIZED_FALSE_STRING "not initialized"
 #define INITIALIZED_TRUE_STRING "initialized"
 
-const uint8_t initializedCustomDataTrue[4]  = {0x0, 0x0, 0x0, 0x0};
+uint8_t initializedCustomDataTrue[4]  = {0x0, 0x0, 0x0, 0x0};
 const uint8_t initializedCustomDataFalse[4] = {0xDF, 0xAD, 0xBE, 0xEE};
 
 typedef struct {
@@ -71,9 +71,6 @@ void printVariables(){
 }
 
 void fillVariablseFromJsonString(char* data){
-    printf("B4\n");
-    printf("in fill variables from json string.data = %s\n",data);
-    printf("after\n");
     cJSON *json = cJSON_Parse(data);
     if (json == NULL) {
         ESP_LOGE(TAG, "Error parsing JSON: %s", cJSON_GetErrorPtr());
@@ -86,14 +83,11 @@ void fillVariablseFromJsonString(char* data){
             variables[i]->value = strdup(got->valuestring);
         }
     }
-    // printf("in fill variables from json string.json = %s\n","");
     cJSON_Delete(json);
-
 }
 
 void readVariablesFromNvs(){
     esp_err_t err;
-
     nvs_handle_t storage;
     err = nvs_open("storage", NVS_READWRITE, &storage);
     if (err != ESP_OK) {
@@ -107,13 +101,11 @@ void readVariablesFromNvs(){
             ESP_LOGE(TAG, "Error getting size for %s: %s", variables[i]->name, esp_err_to_name(err));
             continue;
         }
-
         variables[i]->value = malloc(required_size);
         if (variables[i]->value == NULL) {
             ESP_LOGE(TAG, "Error allocating memory for %s", variables[i]->name);
             continue;
         }
-
         err = nvs_get_str(storage, variables[i]->nvsKey, variables[i]->value, &required_size);
         if (err != ESP_OK) {
             ESP_LOGE(TAG, "Error getting value for %s: %s", variables[i]->name, esp_err_to_name(err));
@@ -259,6 +251,8 @@ void ble_app_advertise(void)
     
     uint8_t custom_data[4];
     if (strcmp(initialized.value, INITIALIZED_TRUE_STRING) == 0){
+        printf("my remote device id:%d",atoi(myRemoteDeviceID.value));
+        initializedCustomDataTrue[3] = atoi(myRemoteDeviceID.value);
         memcpy(custom_data, initializedCustomDataTrue, sizeof(initializedCustomDataTrue));
     }else if (strcmp(initialized.value, INITIALIZED_FALSE_STRING) == 0){
         memcpy(custom_data, initializedCustomDataFalse, sizeof(initializedCustomDataFalse));
