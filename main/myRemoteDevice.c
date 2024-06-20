@@ -69,7 +69,7 @@ void readVariablesFromNvs(){
         size_t required_size = 0;
         err = nvs_get_str(storage, variables[i]->nvsKey, NULL, &required_size);
         if (err != ESP_OK) {
-            fprintf("Error getting size for %s: %s", variables[i]->name, esp_err_to_name(err));
+            printf("Error getting size for %s: %s", variables[i]->name, esp_err_to_name(err));
             continue;
         }
         variables[i]->value = malloc(required_size);
@@ -140,14 +140,15 @@ void app2();
 void app_main()
 {
     nvs_flash_init();
-    app2();
-    return;
+    console();
+    // app2();
+    // return;
     readVariablesFromNvs();
+    // return;
     if(variablesAreEmpty()){
         writeDefaultValues();        
     }
     nimble();
-    console();
 }
 
 void doFunction0(){
@@ -190,7 +191,8 @@ void doFunction1(){
     printf("read var %s:%s\n",varName,var);
 }
 void doFunction2(){
-
+    printf("printing data\n");
+    printNvsData("storage");
 }
 void doFunction3(){
 

@@ -20,14 +20,44 @@ void setNvsVariableString(char*var,char*value,char*namespace){
 }
 
 void printNvsData(const char* namespace) {
-    printf("in printNvsData\n");
-    namespace = "storage";
+    if(namespace==NULL) namespace = "storage";
+    esp_err_t err= NULL;
     nvs_iterator_t it = NULL;
-    esp_err_t err = nvs_entry_find(NULL, namespace, NVS_TYPE_ANY, &it);
+    nvs_handle_t storage;
+    // err = nvs_open_from_partition("nvs", namespace, NVS_READONLY, &storage);
+    err = nvs_open("storage", NVS_READWRITE, &storage);
+    if (err != ESP_OK) {
+        printf("Error (%s) opening NVS handle!\n", esp_err_to_name(err));
+        return;
+    }
+    // namespace=NULL;
+    err =  nvs_entry_find_in_handle(storage, NVS_TYPE_ANY, &it);
+    if (err!=ESP_OK){
+        printf("error:%s\n",esp_err_to_name(err));
+    }
     while(err == ESP_OK) {
         nvs_entry_info_t info;
         nvs_entry_info(it, &info); // Can omit error check if parameters are guaranteed to be non-NULL
-        printf("key '%s', type '%d' \n", info.key, info.type);
+        if(info.type==33){//string
+            size_t required_size = 0;
+            err = nvs_get_str(storage, info.key, NULL, &required_size);
+            if (err != ESP_OK) {
+                printf("Error getting size for %s: %s\n", info.key, esp_err_to_name(err));
+            }
+            char* var = malloc(required_size);
+            if (var == NULL) {
+                printf("Error allocating memory for %s\n", "var");
+            }
+            err = nvs_get_str(storage, info.key, var, &required_size);
+            if (err != ESP_OK) {
+                printf("Error getting value for %s: %s\n", info.key, esp_err_to_name(err));
+                free(var);
+                var = NULL;
+            }
+            
+            printf("key '%s', type '%d', value '%s' \n", info.key, info.type, var);
+        }
+
         err = nvs_entry_next(&it);
     }
     nvs_release_iterator(it);
