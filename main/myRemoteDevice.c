@@ -102,13 +102,13 @@ void writeVariablesToNvs(){
 void writeDefaultValues() {
     esp_err_t err;
     nvs_handle_t storage;
-    printf("nvs_open\n");
+    // printf("nvs_open\n");
     err = nvs_open("storage", NVS_READWRITE, &storage);
     if (err != ESP_OK) {
         printf("Error opening NVS handle: %s", esp_err_to_name(err));
         return;
     }
-    printf("num vars: %d\n", NUM_VARIABLES);
+    // printf("num vars: %d\n", NUM_VARIABLES);
 
     for (size_t i = 0; i < NUM_VARIABLES; ++i) {
         err = nvs_set_str(storage, variables[i]->nvsKey, variables[i]->defaultValue);
@@ -116,7 +116,7 @@ void writeDefaultValues() {
             printf("Error setting %s: %s", variables[i]->name, esp_err_to_name(err));
         }
     }
-    printf("nvs_commit\n");
+    // printf("nvs_commit\n");
 
     err = nvs_commit(storage);
     if (err != ESP_OK) {
@@ -124,7 +124,7 @@ void writeDefaultValues() {
     }
 
     nvs_close(storage);
-    printf("end write\n");
+    // printf("end write\n");
 
 }
 
@@ -150,15 +150,62 @@ void app_main()
     console();
 }
 
+void doFunction0(){
+    printf("write var to nvs\n");
+    char* varName = "myVar";
+    nvs_handle_t storage;
+    nvs_open("storage", NVS_READWRITE, &storage);
+    nvs_set_str(storage, varName, "asdf");
+    nvs_commit(storage);
+    nvs_close(storage);
+}
+void doFunction1(){
+    // printf("read var from nvs\n");    
+    char*varName = varName;
+    esp_err_t err;
+    nvs_handle_t storage;
+    err = nvs_open("storage", NVS_READWRITE, &storage);
+    if (err != ESP_OK) {
+        printf("Error opening NVS handle: %s\n", esp_err_to_name(err));
+        return;
+    }
+    size_t required_size = 0;
+    err = nvs_get_str(storage, varName, NULL, &required_size);
+    if (err != ESP_OK) {
+        if (err == ESP_ERR_NVS_NOT_FOUND){
+
+        }
+        printf("Error getting size for %s: %s\n", varName, esp_err_to_name(err));
+    }
+    char* var = malloc(required_size);
+    if (var == NULL) {
+        printf("Error allocating memory for %s\n", "var");
+    }
+    err = nvs_get_str(storage, varName, var, &required_size);
+    if (err != ESP_OK) {
+        printf("Error getting value for %s: %s\n", varName, esp_err_to_name(err));
+        free(var);
+        var = NULL;
+    }
+    printf("read var %s:%s\n",varName,var);
+}
+void doFunction2(){
+
+}
+void doFunction3(){
+
+}
+void doFunction4(){
+
+}
+
 void app2() {
-    printf("App2\n");
-    printf("num vars: %d\n", NUM_VARIABLES);
     // if(variablesAreEmpty()){
     //     writeDefaultValues();        
     // }
     // writeDefaultValues();        
     // printNvsData("storage");
     // printVariables();
-    // console();
-    printf("App2 end\n");
+    console();
+    // printf("App2 end\n");
 }

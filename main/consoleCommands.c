@@ -51,7 +51,11 @@ static int doConsoleCommand(int argc, char **argv) {
     char*s=argv[1];
     int i = atoi(s);
     void (*doFunctions[])(void) = {
-        printNvsData
+        doFunction0,
+        doFunction1,
+        doFunction2,
+        doFunction3,
+        doFunction4,
     };
     if (i < 0 || i >= sizeof(doFunctions) / sizeof(doFunctions[0])) {
         printf("Invalid function index %d\n", i);

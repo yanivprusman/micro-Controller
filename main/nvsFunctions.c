@@ -8,6 +8,7 @@ void eraseNvsData(char* namespace) {
     } else {
         printf("All NVS data erased successfully!\n");
     }
+    nvs_flash_init();
 }
 void setNvsVariableString(char*var,char*value,char*namespace){
     if (namespace==NULL) namespace = "storage";
@@ -19,6 +20,7 @@ void setNvsVariableString(char*var,char*value,char*namespace){
 }
 
 void printNvsData(const char* namespace) {
+    printf("in printNvsData\n");
     namespace = "storage";
     nvs_iterator_t it = NULL;
     esp_err_t err = nvs_entry_find(NULL, namespace, NVS_TYPE_ANY, &it);

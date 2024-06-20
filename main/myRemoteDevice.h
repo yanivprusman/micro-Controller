@@ -30,14 +30,15 @@ extern char *TAG ;
 extern uint8_t initializedCustomDataTrue[4];
 extern const uint8_t initializedCustomDataFalse[4];
 
+#define NUM_VARIABLES (sizeof(variables) / sizeof(variables[0]))
+
 typedef struct {
     char *name;
     char *value;
     const char *nvsKey;
     const char *defaultValue;
 } variables_t;
-#define NUM_VARIABLES (sizeof(variables) / sizeof(variables[0]))
-
+// #define NUM_VARIABLES (sizeof(variables) / sizeof(variables[0]))
 // extern variables_t * variables[];
 #define INITIALIZED_FALSE_STRING "not initialized"
 #define INITIALIZED_TRUE_STRING "initialized"
@@ -47,7 +48,7 @@ extern variables_t ssidName;
 extern variables_t ssidPassword;
 extern variables_t myRemoteDeviceName;
 extern variables_t myRemoteDeviceID;
-extern variables_t *variables[2];
+extern variables_t *variables[];
 #define DEVICE_TYPE_UUID BLE_UUID16_DECLARE(0x180)
 #define UNINITIALIZED_CHAR_UUID BLE_UUID16_DECLARE(0xFEF5)
 #define INITIALIZED_CHAR_UUID BLE_UUID16_DECLARE(0xFEF4)
@@ -55,4 +56,10 @@ void readVariablesFromNvs();
 void printVariables();
 void fillVariablseFromJsonString(char* data);
 void writeVariablesToNvs();
+void doFunction0();
+void doFunction1();
+void doFunction2();
+void doFunction3();
+void doFunction4();
+
 #endif // _MY_REMOTE_DEVICE_
