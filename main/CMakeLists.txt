@@ -1,2 +1,2 @@
-idf_component_register(SRCS "consoleCommands.c" "deleteNvs.c" "gatt_demo.c"  
+idf_component_register(SRCS "ble.c" "strip.c" "nvsFunctions.c" "myRemoteDevice.c" "consoleCommands.c"  
                     INCLUDE_DIRS ".")

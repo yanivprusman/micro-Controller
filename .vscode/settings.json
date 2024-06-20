@@ -15,6 +15,5 @@
   "idf.portWin": "COM9",
   "idf.openOcdConfigs": [
     "board/esp32c3-builtin.cfg"
-  ],
-  "idf.customAdapterTargetName": "ESP8266"
+  ]
 }

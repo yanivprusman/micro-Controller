@@ -1,5 +1,4 @@
-#include "driver/uart.h"
-#include "esp_console.h"
+#include "myRemoteDevice.h"
 #define PROMPT_STR CONFIG_IDF_TARGET
 void setLedStripColor(int index,int red,int green,int blue);
 void printVariables();
@@ -20,6 +19,14 @@ static int printVariablesConsoleCommand() {
     printVariables();
     return 0; 
 }
+static int setNvsVariableConsoleCommand(int argc, char **argv) {
+    if (argc != 3) {
+        printf("Usage: set <variable> <value>\n");
+        return 1; 
+    }
+
+    return 0; 
+}
 void register_custom_commands() {
     esp_console_cmd_t cmd = {
         .command = "strip",
@@ -33,6 +40,13 @@ void register_custom_commands() {
         .help = "print nvs variables",
         .hint = "print [name-of-variable]",
         .func = &printVariablesConsoleCommand,
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+    cmd = (esp_console_cmd_t){
+        .command = "set",
+        .help = "set nvs variables",
+        .hint = "set variable value",
+        .func = &setNvsVariableConsoleCommand,
     };
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
