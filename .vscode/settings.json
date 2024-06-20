@@ -1,12 +1,20 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
   "idf.flashType": "UART",
-  "idf.adapterTargetName": "esp32",
+  "idf.adapterTargetName": "esp32c3",
   "files.associations": {
     "ble_svc_gatt.h": "c",
     "stdio.h": "c",
     "cjson.h": "c",
     "task.h": "c",
-    "gpio.h": "c"
-  }
+    "gpio.h": "c",
+    "led_strip.h": "c",
+    "typeinfo": "c",
+    "consolecommands.h": "c"
+  },
+  "idf.portWin": "COM9",
+  "idf.openOcdConfigs": [
+    "board/esp32c3-builtin.cfg"
+  ],
+  "idf.customAdapterTargetName": "ESP8266"
 }

@@ -13,6 +13,14 @@
 #include "services/gatt/ble_svc_gatt.h"
 #include "sdkconfig.h"
 #include "cJSON.h"
+#include "esp_sleep.h"
+#include <driver/gpio.h>
+#include "led_strip.h"
+#include "deleteNvs.h"
+#include "driver/uart.h"
+#include "esp_console.h"
+#include "consoleCommands.h"
+
 
 char *TAG = "BLE-Server tag ";
 uint8_t ble_addr_type;
@@ -59,13 +67,13 @@ variables_t
         ""};
 variables_t * variables[]={&initialized,&ssidName,&ssidPassword,&myRemoteDeviceName,&myRemoteDeviceID};
 #define DEVICE_TYPE_UUID BLE_UUID16_DECLARE(0x180)
-#define INITIALIZED_CHAR_UUID BLE_UUID16_DECLARE(0xFEF4)
 #define UNINITIALIZED_CHAR_UUID BLE_UUID16_DECLARE(0xFEF5)
+#define INITIALIZED_CHAR_UUID BLE_UUID16_DECLARE(0xFEF4)
 
 void printVariables(){
     for (int i = 0;i < NUM_VARIABLES;i++){
         if((variables[i]->value)&&(variables[i]->name)){
-            printf("the value of %s is %s\n",variables[i]->name,variables[i]->value);
+            printf("the value of %s is \"%s\"\n",variables[i]->name,variables[i]->value);
         }
     }
 }
@@ -149,13 +157,15 @@ static int uninitializedCallback(uint16_t conn_handle, uint16_t attr_handle, str
                 return -1;
             }
 
-            printf("JSON Response: %s\n", json_string);
+            printf("In uninitializedCallback Reading\n");
+            printVariables();
             os_mbuf_append(ctxt->om, json_string, strlen(json_string));
             cJSON_Delete(json_response);
             free(json_string);
             return 0;
 
         case BLE_GATT_ACCESS_OP_WRITE_CHR:
+            printf("In uninitializedCallback writing\n");
             fillVariablseFromJsonString((char *) ctxt->om->om_data);
             initialized.value = INITIALIZED_TRUE_STRING;
             writeVariablesToNvs();
@@ -186,7 +196,7 @@ static int initializedCallback(uint16_t conn_handle, uint16_t attr_handle, struc
         return -1;
     }
 
-    printf("JSON Response: %s\n", json_string);
+    printf("in initializedCallback JSON Response: %s\n", json_string);
     os_mbuf_append(ctxt->om, json_string, strlen(json_string));
 
     cJSON_Delete(json_response);
@@ -199,12 +209,12 @@ static const struct ble_gatt_svc_def gatt_svcs[] = {
     {.type = BLE_GATT_SVC_TYPE_PRIMARY,
      .uuid = DEVICE_TYPE_UUID,                
      .characteristics = (struct ble_gatt_chr_def[]){
-         {.uuid = INITIALIZED_CHAR_UUID,
-          .flags = BLE_GATT_CHR_F_WRITE|BLE_GATT_CHR_F_READ,
-          .access_cb = initializedCallback},
          {.uuid = UNINITIALIZED_CHAR_UUID,           // Define UUID for writing
           .flags = BLE_GATT_CHR_F_WRITE|BLE_GATT_CHR_F_READ,
           .access_cb = uninitializedCallback},
+         {.uuid = INITIALIZED_CHAR_UUID,
+          .flags = BLE_GATT_CHR_F_WRITE|BLE_GATT_CHR_F_READ,
+          .access_cb = initializedCallback},
         {0}}},
     {0}
 };
@@ -318,12 +328,31 @@ bool variablesAreEmpty(){
     }
     return empty;
 }
-#include "driver/gpio.h"
-
+void setLedStripColor(int index, int red, int green, int blue){
+    static bool initialized = false;
+    static led_strip_handle_t led_strip;
+    if (!initialized){
+        initialized = true;
+        int BLINK_GPIO = 8;
+        led_strip_config_t strip_config = {
+            .strip_gpio_num = BLINK_GPIO,
+            .max_leds = 1, // at least one LED on board
+        };
+        led_strip_rmt_config_t rmt_config = {
+            .resolution_hz = 10 * 1000 * 1000, // 10MHz
+            .flags.with_dma = false,
+        };
+        ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &led_strip));
+    }
+    // led_strip_clear(led_strip);
+    led_strip_set_pixel(led_strip, index, red, green, blue);
+    led_strip_refresh(led_strip);
+}
 void app_main()
 {
     // app2();
     // return;
+    // setLedStripColor(0,0,0,0);
     nvs_flash_init();
     readVariablesFromNvs();
     if(variablesAreEmpty()){
@@ -336,6 +365,8 @@ void app_main()
     ble_gatts_add_svcs(gatt_svcs);
     ble_hs_cfg.sync_cb = ble_app_on_sync;
     nimble_port_freertos_init(host_task);
+    // getInputFromConsole();
+    console();
 }
 
 // void deleteDataFromNvs(void)
@@ -375,9 +406,6 @@ void app_main()
 // }
 
 void app2() {
-    int x = 18;
-    for(;;){
-        printf("%d\n",x);
-        x++;
-    }
+       erase_nvs_data();
+
 }
