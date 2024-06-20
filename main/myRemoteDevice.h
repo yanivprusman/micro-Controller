@@ -22,20 +22,23 @@
 #include "esp_console.h"
 #include "consoleCommands.h"
 #include "ble.h"
+#include "nvsFunctions.h"
+#include "strip.h"
+#include "nvs.h"
 extern char *TAG ;
 
 extern uint8_t initializedCustomDataTrue[4];
 extern const uint8_t initializedCustomDataFalse[4];
 
-void console();
 typedef struct {
     char *name;
     char *value;
     const char *nvsKey;
     const char *defaultValue;
 } variables_t;
-
 #define NUM_VARIABLES (sizeof(variables) / sizeof(variables[0]))
+
+// extern variables_t * variables[];
 #define INITIALIZED_FALSE_STRING "not initialized"
 #define INITIALIZED_TRUE_STRING "initialized"
 
@@ -44,7 +47,7 @@ extern variables_t ssidName;
 extern variables_t ssidPassword;
 extern variables_t myRemoteDeviceName;
 extern variables_t myRemoteDeviceID;
-extern variables_t *variables[];
+extern variables_t *variables[2];
 #define DEVICE_TYPE_UUID BLE_UUID16_DECLARE(0x180)
 #define UNINITIALIZED_CHAR_UUID BLE_UUID16_DECLARE(0xFEF5)
 #define INITIALIZED_CHAR_UUID BLE_UUID16_DECLARE(0xFEF4)

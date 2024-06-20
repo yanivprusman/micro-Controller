@@ -116,7 +116,9 @@ void ble_app_advertise(void)
     const char *device_name;
     memset(&fields, 0, sizeof(fields));
     readVariablesFromNvs();
-    ble_svc_gap_device_name_set(myRemoteDeviceName.value);
+    if (myRemoteDeviceName.value!=NULL){
+        ble_svc_gap_device_name_set(myRemoteDeviceName.value);
+    };
     device_name = ble_svc_gap_device_name();
     fields.name = (uint8_t *)device_name;
     fields.name_len = strlen(device_name);

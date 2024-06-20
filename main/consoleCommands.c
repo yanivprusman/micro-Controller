@@ -1,7 +1,6 @@
 #include "myRemoteDevice.h"
 #define PROMPT_STR CONFIG_IDF_TARGET
-void setLedStripColor(int index,int red,int green,int blue);
-void printVariables();
+// void setLedStripColor(int index,int red,int green,int blue);
 
 static int setLedStripColorConsoleCommand(int argc, char **argv) {
     if (argc != 5) {
@@ -20,10 +19,47 @@ static int printVariablesConsoleCommand() {
     return 0; 
 }
 static int setNvsVariableConsoleCommand(int argc, char **argv) {
-    if (argc != 3) {
-        printf("Usage: set <variable> <value>\n");
+    if (argc != 4) {
+        printf("Usage: set <variable> <value> <namespace>\n");
         return 1; 
+    };
+    char*var=argv[1];
+    char*value=argv[2];
+    char*namespace=argv[3];
+
+    setNvsVariableString(var,value,NULL);
+
+    return 0; 
+}
+static int eraseNvsDataConsoleCommand(int argc, char **argv) {
+    if (argc != 2) {
+        printf("Usage: dellAll <namespace>\n");
+        return 1; 
+    };
+    char*namespace=argv[1];
+    // printf("%s\n",namespace);
+    if (namespace==NULL) namespace = "storage";    
+    eraseNvsData(namespace);
+
+    return 0; 
+}
+static int doConsoleCommand(int argc, char **argv) {
+    if (argc != 2) {
+        printf("Usage: do <n>\n");
+        return 1; 
+    };
+    char*s=argv[1];
+    int i = atoi(s);
+    void (*doFunctions[])(void) = {
+        printNvsData
+    };
+    if (i < 0 || i >= sizeof(doFunctions) / sizeof(doFunctions[0])) {
+        printf("Invalid function index %d\n", i);
+        return 1;
     }
+
+    // Call the function based on the index i
+    doFunctions[i]();
 
     return 0; 
 }
@@ -47,6 +83,20 @@ void register_custom_commands() {
         .help = "set nvs variables",
         .hint = "set variable value",
         .func = &setNvsVariableConsoleCommand,
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+    cmd = (esp_console_cmd_t){
+        .command = "delAll",
+        .help = "delete all nvs variables",
+        .hint = "[namespace]",
+        .func = &eraseNvsDataConsoleCommand,
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+    cmd = (esp_console_cmd_t){
+        .command = "do",
+        .help = "do a function",
+        .hint = "do <n> (n is the number of the function)",
+        .func = &doConsoleCommand,
     };
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }

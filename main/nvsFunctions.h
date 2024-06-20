@@ -1,7 +1,7 @@
 #ifndef _NVS_FUNCTIONS_
 #define _NVS_FUNCTIONS_
-#define erase_nvs_data(...) eRase_nvs_data(__VA_ARGS__, "storage") // 42 is the default value for the optional argument
-
-// void erase_nvs_data(void);
-
+#include "myRemoteDevice.h"
+void eraseNvsData(char* namespace); 
+void setNvsVariableString(char*var,char*value,char*namespace);
+void printNvsData(const char* namespace);
 #endif // _NVS_FUNCTIONS_

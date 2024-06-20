@@ -98,16 +98,17 @@ void writeVariablesToNvs(){
     nvs_commit(storage);
     nvs_close(storage);
 }
-void app2();
 
 void writeDefaultValues() {
     esp_err_t err;
     nvs_handle_t storage;
+    printf("nvs_open\n");
     err = nvs_open("storage", NVS_READWRITE, &storage);
     if (err != ESP_OK) {
         printf("Error opening NVS handle: %s", esp_err_to_name(err));
         return;
     }
+    printf("num vars: %d\n", NUM_VARIABLES);
 
     for (size_t i = 0; i < NUM_VARIABLES; ++i) {
         err = nvs_set_str(storage, variables[i]->nvsKey, variables[i]->defaultValue);
@@ -115,6 +116,7 @@ void writeDefaultValues() {
             printf("Error setting %s: %s", variables[i]->name, esp_err_to_name(err));
         }
     }
+    printf("nvs_commit\n");
 
     err = nvs_commit(storage);
     if (err != ESP_OK) {
@@ -122,6 +124,8 @@ void writeDefaultValues() {
     }
 
     nvs_close(storage);
+    printf("end write\n");
+
 }
 
 bool variablesAreEmpty(){
@@ -132,11 +136,12 @@ bool variablesAreEmpty(){
     }
     return empty;
 }
+void app2();
 void app_main()
 {
-    // app2();
-    // return;
     nvs_flash_init();
+    app2();
+    return;
     readVariablesFromNvs();
     if(variablesAreEmpty()){
         writeDefaultValues();        
@@ -146,4 +151,14 @@ void app_main()
 }
 
 void app2() {
+    printf("App2\n");
+    printf("num vars: %d\n", NUM_VARIABLES);
+    // if(variablesAreEmpty()){
+    //     writeDefaultValues();        
+    // }
+    // writeDefaultValues();        
+    // printNvsData("storage");
+    // printVariables();
+    // console();
+    printf("App2 end\n");
 }

@@ -1,43 +1,33 @@
-#include "nvs_flash.h"
-#include "esp_log.h"
+#include "nvsFunctions.h"
 
-
-
-void eRase_nvs_data(char* namespace) {
+void eraseNvsData(char* namespace) {
     esp_err_t err;
-
-    // Initialize NVS
-    // err = nvs_flash_init();
-    // if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-    //     // NVS partition was truncated and needs to be erased
-    //     ESP_ERROR_CHECK(nvs_flash_erase());
-    //     // Retry nvs_flash_init
-    //     err = nvs_flash_init();
-    // }
-    // ESP_ERROR_CHECK(err);
-
-    // Open NVS handle
-    nvs_handle_t nvs_handle;
-
-    err = nvs_open("storage", NVS_READWRITE, &nvs_handle);
-    if (err != ESP_OK) {
-        printf("Error (%s) opening NVS handle!", esp_err_to_name(err));
-        return; // Return early if there is an error opening the handle
-    } 
-
-    // Erase all NVS data
     err = nvs_flash_erase();
     if (err != ESP_OK) {
-        printf("Error (%s) erasing NVS partition!", esp_err_to_name(err));
+        printf("Error (%s) erasing NVS partition!\n", esp_err_to_name(err));
     } else {
-        // Commit the changes
-        err = nvs_commit(nvs_handle);
-        if (err != ESP_OK) {
-            printf("Error (%s) committing changes!", esp_err_to_name(err));
-        } else {
-            printf("All NVS data erased successfully!");
-        }
+        printf("All NVS data erased successfully!\n");
     }
-    // Close NVS handle
-    nvs_close(nvs_handle);
 }
+void setNvsVariableString(char*var,char*value,char*namespace){
+    if (namespace==NULL) namespace = "storage";
+    nvs_handle_t storage;
+    nvs_open(namespace, NVS_READWRITE, &storage);
+    nvs_set_str(storage, var, value);
+    nvs_commit(storage);
+    nvs_close(storage);
+}
+
+void printNvsData(const char* namespace) {
+    namespace = "storage";
+    nvs_iterator_t it = NULL;
+    esp_err_t err = nvs_entry_find(NULL, namespace, NVS_TYPE_ANY, &it);
+    while(err == ESP_OK) {
+        nvs_entry_info_t info;
+        nvs_entry_info(it, &info); // Can omit error check if parameters are guaranteed to be non-NULL
+        printf("key '%s', type '%d' \n", info.key, info.type);
+        err = nvs_entry_next(&it);
+    }
+    nvs_release_iterator(it);
+}
+
