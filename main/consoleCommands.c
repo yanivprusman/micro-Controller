@@ -1,21 +1,12 @@
-#include "myRemoteDevice.h"
+#include "consoleCommands.h"
 #define PROMPT_STR CONFIG_IDF_TARGET
-// void setLedStripColor(int index,int red,int green,int blue);
 
-static int setLedStripColorConsoleCommand(int argc, char **argv) {
-    if (argc != 5) {
-        printf("Usage: strip <index> <red> <green> <blue>\n");
+static int printNvsVariablesConsoleCommand(int argc, char **argv) {
+    if (argc != 2) {
+        printf("Usage: set <variable> <value> <namespace>\n");
         return 1; 
-    }
-    int index = atoi(argv[1]);
-    int red = atoi(argv[2]);
-    int green = atoi(argv[3]);
-    int blue = atoi(argv[4]);
-    setLedStripColor(index,red,green,blue);
-    return 0; 
-}
-static int printVariablesConsoleCommand() {
-    printVariables();
+    };
+    printNvsData("storage");
     return 0; 
 }
 static int setNvsVariableConsoleCommand(int argc, char **argv) {
@@ -27,7 +18,7 @@ static int setNvsVariableConsoleCommand(int argc, char **argv) {
     char*value=argv[2];
     char*namespace=argv[3];
 
-    setNvsVariableString(var,value,NULL);
+    setNvsVariableString(var,value,namespace);
 
     return 0; 
 }
@@ -43,43 +34,26 @@ static int eraseNvsDataConsoleCommand(int argc, char **argv) {
 
     return 0; 
 }
-static int doConsoleCommand(int argc, char **argv) {
-    if (argc != 2) {
-        printf("Usage: do <n>\n");
-        return 1; 
-    };
-    char*s=argv[1];
-    int i = atoi(s);
-    void (*doFunctions[])(void) = {
-        doFunction0,
-        doFunction1,
-        doFunction2,
-        doFunction3,
-        doFunction4,
-    };
-    if (i < 0 || i >= sizeof(doFunctions) / sizeof(doFunctions[0])) {
-        printf("Invalid function index %d\n", i);
-        return 1;
-    }
-
-    // Call the function based on the index i
-    doFunctions[i]();
-
-    return 0; 
-}
 void register_custom_commands() {
     esp_console_cmd_t cmd = {
-        .command = "strip",
+        .command = STRIP_COMMAND,
         .help = "setLedStripColor",
         .hint = "strip index red green blue",
-        .func = &setLedStripColorConsoleCommand,
+        .func = &STRIP_CALLBACK,
     };
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
     cmd = (esp_console_cmd_t){
-        .command = "print",
+        .command = PRINT_MRD_VARIABLES,
         .help = "print nvs variables",
         .hint = "print [name-of-variable]",
-        .func = &printVariablesConsoleCommand,
+        .func = &PRINT_MRD_VARIABLES_CALLBACK,
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+    cmd = (esp_console_cmd_t){
+        .command = "printNvsVariables",
+        .help = "print nvs variables",
+        .hint = "print [name-of-variable]",
+        .func = &printNvsVariablesConsoleCommand,
     };
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
     cmd = (esp_console_cmd_t){
@@ -97,10 +71,10 @@ void register_custom_commands() {
     };
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
     cmd = (esp_console_cmd_t){
-        .command = "do",
+        .command = DO_COMMAND,
         .help = "do a function",
-        .hint = "do <n> (n is the number of the function)",
-        .func = &doConsoleCommand,
+        .hint = "do <function-name>",
+        .func = &DO_CALLBACK,
     };
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }

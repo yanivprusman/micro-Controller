@@ -149,9 +149,10 @@ void app_main()
         writeDefaultValues();        
     }
     nimble();
+    // setLedStripColor(0,4,4,4);
 }
 
-void doFunction0(){
+void doFunction1(){
     printf("write var to nvs\n");
     char* varName = "myVar";
     nvs_handle_t storage;
@@ -160,7 +161,7 @@ void doFunction0(){
     nvs_commit(storage);
     nvs_close(storage);
 }
-void doFunction1(){
+void doFunction2(){
     // printf("read var from nvs\n");    
     char*varName = varName;
     esp_err_t err;
@@ -190,24 +191,6 @@ void doFunction1(){
     }
     printf("read var %s:%s\n",varName,var);
 }
-void doFunction2(){
-    printf("printing data\n");
-    printNvsData("storage");
-}
-void doFunction3(){
-
-}
-void doFunction4(){
-
-}
-
 void app2() {
-    // if(variablesAreEmpty()){
-    //     writeDefaultValues();        
-    // }
-    // writeDefaultValues();        
-    // printNvsData("storage");
-    // printVariables();
     console();
-    // printf("App2 end\n");
 }
