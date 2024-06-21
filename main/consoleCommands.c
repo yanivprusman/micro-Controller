@@ -16,34 +16,48 @@ int printMRDCB(int argc, char **argv) {
     return 0; 
 }
 int printNvsCB(int argc, char **argv) {
-    if (argc != 2) {
-        printf("Usage: set <variable> <value> <namespace>\n");
+    if (argc == 0) {
+        printf("Usage: printNvs <namespace> <variable or 'all'>\n");
         return 1; 
     };
-    printNvsData("storage");
+    char*namespace=argv[1];
+    if (argc != 3) {
+        return 1; 
+    };
+    char*key=argv[2];
+    if (strcmp(key,"all")==0){
+        printNvsData(namespace);
+        return 0;
+    }
+    printNvsVariable(namespace,key);
     return 0; 
 }
 int setNvsCB(int argc, char **argv) {
     if (argc != 4) {
-        printf("Usage: set <variable> <value> <namespace>\n");
+        printf("Usage: set <namespace> <variable> <value> \n");
         return 1; 
     };
-    char*var=argv[1];
-    char*value=argv[2];
-    char*namespace=argv[3];
+    char*namespace= argv[1];
+    char*key=       argv[2];
+    char*value=     argv[3];
 
-    setNvsVariableString(var,value,namespace);
+    setNvsVariableString(namespace,key,value);
 
     return 0; 
 }
 int delNvsCB(int argc, char **argv) {
-    if (argc != 2) {
-        printf("Usage: dellNvs <namespace> <variable>\n");
+    if (argc == 0) {
+        printf("Usage: dellNvs <namespace> <variable or 'all'>\n");
         return 1; 
     };
     char*namespace=argv[1];
+    char*var=argv[2];
+    if (strcmp(var,"all")==0){
+        eraseNvsData(namespace);
+        return 0;
+    }
+    deleteNvsVariable(namespace,var);
     // if (namespace==NULL) namespace = "storage";    
-    eraseNvsData(namespace);
 
     return 0; 
 }

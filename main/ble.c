@@ -89,18 +89,18 @@ static int ble_gap_event(struct ble_gap_event *event, void *arg)
     switch (event->type)
     {
     case BLE_GAP_EVENT_CONNECT:
-        printf("BLE GAP EVENT CONNECT %s", event->connect.status == 0 ? "OK!" : "FAILED!");
+        printf("BLE GAP EVENT CONNECT %s\n", event->connect.status == 0 ? "OK!" : "FAILED!");
         if (event->connect.status != 0)
         {
             ble_app_advertise();
         }
         break;
     case BLE_GAP_EVENT_ADV_COMPLETE:
-        printf("BLE GAP EVENT");
+        printf("BLE GAP EVENT\n");
         ble_app_advertise();
         break;
     case BLE_GAP_EVENT_DISCONNECT:
-        printf("BLE GAP EVENT DISCONNECT reason: %d", event->disconnect.reason);
+        printf("BLE GAP EVENT DISCONNECT reason: %d\n", event->disconnect.reason);
         vTaskDelay(pdMS_TO_TICKS(1000));
         ble_app_advertise();
         break;
@@ -128,7 +128,7 @@ void ble_app_advertise(void)
     
     uint8_t custom_data[4];
     if (strcmp(initialized.value, INITIALIZED_TRUE_STRING) == 0){
-        printf("my remote device id:%d",atoi(myRemoteDeviceID.value));
+        printf("my remote device id:%d\n",atoi(myRemoteDeviceID.value));
         initializedCustomDataTrue[3] = atoi(myRemoteDeviceID.value);
         memcpy(custom_data, initializedCustomDataTrue, sizeof(initializedCustomDataTrue));
     }else if (strcmp(initialized.value, INITIALIZED_FALSE_STRING) == 0){

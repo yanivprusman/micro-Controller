@@ -4,9 +4,9 @@
 void register_custom_commands() {
     esp_console_cmd_t 
         stripCmd = {
-            "strip",
-            "setLedStripColor",
-            "strip index red green blue",
+            "strip",                                //command
+            "set led strip color",                  //help
+            "strip <index> <red> <green> <blue>",   //hint
             &stripCB,
         },
         printMRD ={
@@ -18,7 +18,7 @@ void register_custom_commands() {
         printNVS ={
             "printNvs",
             "print nvs variables",
-            "print [name-of-variable]",
+            "printNvs <namespace> <variable or 'all'>",
             &printNvsCB,
         },
         setNvs ={
@@ -30,7 +30,7 @@ void register_custom_commands() {
         delNvs ={
             "delNvs",
             "delete nvs variable",
-            "delNvs <namespace> <variable>",
+            "delNvs <namespace> <variable or 'all'>",
             &delNvsCB,
         },
         doC ={
