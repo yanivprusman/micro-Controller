@@ -1,82 +1,55 @@
 #include "consoleCommands.h"
 #define PROMPT_STR CONFIG_IDF_TARGET
 
-static int printNvsVariablesConsoleCommand(int argc, char **argv) {
-    if (argc != 2) {
-        printf("Usage: set <variable> <value> <namespace>\n");
-        return 1; 
-    };
-    printNvsData("storage");
-    return 0; 
-}
-static int setNvsVariableConsoleCommand(int argc, char **argv) {
-    if (argc != 4) {
-        printf("Usage: set <variable> <value> <namespace>\n");
-        return 1; 
-    };
-    char*var=argv[1];
-    char*value=argv[2];
-    char*namespace=argv[3];
-
-    setNvsVariableString(var,value,namespace);
-
-    return 0; 
-}
-static int eraseNvsDataConsoleCommand(int argc, char **argv) {
-    if (argc != 2) {
-        printf("Usage: dellAll <namespace>\n");
-        return 1; 
-    };
-    char*namespace=argv[1];
-    // printf("%s\n",namespace);
-    if (namespace==NULL) namespace = "storage";    
-    eraseNvsData(namespace);
-
-    return 0; 
-}
 void register_custom_commands() {
-    esp_console_cmd_t cmd = {
-        .command = STRIP_COMMAND,
-        .help = "setLedStripColor",
-        .hint = "strip index red green blue",
-        .func = &STRIP_CALLBACK,
-    };
-    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
-    cmd = (esp_console_cmd_t){
-        .command = PRINT_MRD_VARIABLES,
-        .help = "print nvs variables",
-        .hint = "print [name-of-variable]",
-        .func = &PRINT_MRD_VARIABLES_CALLBACK,
-    };
-    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
-    cmd = (esp_console_cmd_t){
-        .command = "printNvsVariables",
-        .help = "print nvs variables",
-        .hint = "print [name-of-variable]",
-        .func = &printNvsVariablesConsoleCommand,
-    };
-    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
-    cmd = (esp_console_cmd_t){
-        .command = "set",
-        .help = "set nvs variables",
-        .hint = "set variable value",
-        .func = &setNvsVariableConsoleCommand,
-    };
-    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
-    cmd = (esp_console_cmd_t){
-        .command = "delAll",
-        .help = "delete all nvs variables",
-        .hint = "[namespace]",
-        .func = &eraseNvsDataConsoleCommand,
-    };
-    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
-    cmd = (esp_console_cmd_t){
-        .command = DO_COMMAND,
-        .help = "do a function",
-        .hint = "do <function-name>",
-        .func = &DO_CALLBACK,
-    };
-    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+    esp_console_cmd_t 
+        stripCmd = {
+            "strip",
+            "setLedStripColor",
+            "strip index red green blue",
+            &stripCB,
+        },
+        printMRD ={
+            "printMRD",
+            "print my remote device variables",
+            "printMRD",
+            &printMRDCB,
+        },
+        printNVS ={
+            "printNvs",
+            "print nvs variables",
+            "print [name-of-variable]",
+            &printNvsCB,
+        },
+        setNvs ={
+            "setNvs",
+            "set nvs variable",
+            "setNvs <namespace> <variable> <value>",
+            &setNvsCB,
+        },
+        delNvs ={
+            "delNvs",
+            "delete nvs variable",
+            "delNvs <namespace> <variable>",
+            &delNvsCB,
+        },
+        doC ={
+            "do",
+            "do a function",
+            "do <function-name>",
+            &doCB,
+        };
+    esp_console_cmd_t *commands[] = {
+        &stripCmd,
+        &printMRD,
+        &printNVS,
+        &setNvs,
+        &delNvs,
+        &doC};
+    
+    for(int x=0; x<(sizeof(commands)/sizeof(commands[0]));x++){
+        ESP_ERROR_CHECK(esp_console_cmd_register(commands[x]));
+    }    
 }
 void console(){
     esp_console_register_help_command();
