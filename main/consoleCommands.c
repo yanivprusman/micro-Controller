@@ -1,63 +1,69 @@
 #include "consoleCommands.h"
-#define PROMPT_STR CONFIG_IDF_TARGET
-
-void register_custom_commands() {
-    esp_console_cmd_t 
-        stripCmd = {
-            "strip",
-            "setLedStripColor",
-            "strip index red green blue",
-            &stripCB,
-        },
-        printMRD ={
-            "printMRD",
-            "print my remote device variables",
-            "printMRD",
-            &printMRDCB,
-        },
-        printNVS ={
-            "printNvs",
-            "print nvs variables",
-            "print [name-of-variable]",
-            &printNvsCB,
-        },
-        setNvs ={
-            "setNvs",
-            "set nvs variable",
-            "setNvs <namespace> <variable> <value>",
-            &setNvsCB,
-        },
-        delNvs ={
-            "delNvs",
-            "delete nvs variable",
-            "delNvs <namespace> <variable>",
-            &delNvsCB,
-        },
-        doC ={
-            "do",
-            "do a function",
-            "do <function-name>",
-            &doCB,
-        };
-    esp_console_cmd_t *commands[] = {
-        &stripCmd,
-        &printMRD,
-        &printNVS,
-        &setNvs,
-        &delNvs,
-        &doC};
-    
-    for(int x=0; x<(sizeof(commands)/sizeof(commands[0]));x++){
-        ESP_ERROR_CHECK(esp_console_cmd_register(commands[x]));
-    }    
+int stripCB(int argc, char **argv) {
+    if (argc != 5) {
+        printf("Usage: strip <index> <red> <green> <blue>\n");
+        return 1; 
+    }
+    int index = atoi(argv[1]);
+    int red = atoi(argv[2]);
+    int green = atoi(argv[3]);
+    int blue = atoi(argv[4]);
+    setLedStripColor(index,red,green,blue);
+    return 0; 
 }
-void console(){
-    esp_console_register_help_command();
-    esp_console_repl_t *repl = NULL;
-    esp_console_repl_config_t repl_config = ESP_CONSOLE_REPL_CONFIG_DEFAULT();
-    repl_config.prompt = PROMPT_STR ">";
-    esp_console_dev_uart_config_t hw_config = ESP_CONSOLE_DEV_UART_CONFIG_DEFAULT();
-    esp_console_new_repl_uart(&hw_config, &repl_config, &repl);
-    register_custom_commands();
-    esp_console_start_repl(repl);
+int printMRDCB(int argc, char **argv) {
+    printVariables();
+    return 0; 
+}
+int printNvsCB(int argc, char **argv) {
+    if (argc != 2) {
+        printf("Usage: set <variable> <value> <namespace>\n");
+        return 1; 
+    };
+    printNvsData("storage");
+    return 0; 
+}
+int setNvsCB(int argc, char **argv) {
+    if (argc != 4) {
+        printf("Usage: set <variable> <value> <namespace>\n");
+        return 1; 
+    };
+    char*var=argv[1];
+    char*value=argv[2];
+    char*namespace=argv[3];
+
+    setNvsVariableString(var,value,namespace);
+
+    return 0; 
+}
+int delNvsCB(int argc, char **argv) {
+    if (argc != 2) {
+        printf("Usage: dellNvs <namespace> <variable>\n");
+        return 1; 
+    };
+    char*namespace=argv[1];
+    // if (namespace==NULL) namespace = "storage";    
+    eraseNvsData(namespace);
+
+    return 0; 
+}
+
+int doCB(int argc, char **argv) {
+    char*s=argv[1];
+    int i = atoi(s);
+    void (*doFunctions[])(void) = {
+        doFunction1,
+        doFunction2
+    };
+    if (i < 1 || i >= sizeof(doFunctions) / sizeof(doFunctions[0])) {
+        if (strcmp(s,"asdf")==0){
+            setLedStripColor(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]));
+            return 0;
+        }else{
+            printf("Invalid function index %d\n", i);
+            return 1;
+        }
+    }
+    doFunctions[i]();
+    return 0; 
 }
