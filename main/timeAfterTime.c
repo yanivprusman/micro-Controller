@@ -1,4 +1,4 @@
-#include "time.h"
+#include "timeAfterTime.h"
 void initialize_sntp(void) {
     printf("Initializing SNTP\n");
 

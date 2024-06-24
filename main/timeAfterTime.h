@@ -1,5 +1,5 @@
-#ifndef _TIME_
-#define _TIME_
+#ifndef _TIMEAFTERTIME_
+#define _TIMEAFTERTIME_
 
 #include "esp_sntp.h"
 #include "esp_log.h"
@@ -7,4 +7,4 @@
 
 void doTime(void);
 
-#endif // _TIME_
+#endif // _TIMEAFTERTIME_

@@ -157,6 +157,7 @@ void app_main()
         printf("error3: %s\n",esp_err_to_name(err));
     };
     // wifi();
+    example_connect();
     
     nimble();
     doTime();
@@ -175,7 +176,6 @@ void app_main()
 }
 
 #include "esp_netif.h"
-#include "esp_tls.h"
 #include "esp_tls.h"
 
 extern const uint8_t cStart[] asm("_binary_serverCert_pem_start");
