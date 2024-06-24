@@ -25,6 +25,13 @@
 #include "nvsFunctions.h"
 #include "strip.h"
 #include "nvs.h"
+#include "ota.h"
+#include "wifi.h"
+#include "examplecom.h"
+#include "examplecom2.h"
+#include "esp_wifi.h"
+#include "time.h"
+
 extern char *TAG ;
 
 extern uint8_t initializedCustomDataTrue[4];
@@ -52,14 +59,16 @@ extern variables_t *variables[];
 #define DEVICE_TYPE_UUID BLE_UUID16_DECLARE(0x180)
 #define UNINITIALIZED_CHAR_UUID BLE_UUID16_DECLARE(0xFEF5)
 #define INITIALIZED_CHAR_UUID BLE_UUID16_DECLARE(0xFEF4)
+typedef struct {
+    int argc;
+    char **argv;
+} args_t;
 void readVariablesFromNvs();
 void printVariables();
 void fillVariablseFromJsonString(char* data);
 void writeVariablesToNvs();
-void doFunction0();
-void doFunction1();
-void doFunction2();
-void doFunction3();
-void doFunction4();
+int doFunction1(int argc, char **argv);
+int doFunction2(int argc, char **argv);
+void app2();
 
 #endif // _MY_REMOTE_DEVICE_

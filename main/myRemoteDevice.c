@@ -1,4 +1,6 @@
 #include "myRemoteDevice.h"
+#include "protocol_examples_common.h"
+#include "esp_event.h"
 
 char * TAG = "MyRemoteDevice";
 
@@ -136,61 +138,148 @@ bool variablesAreEmpty(){
     }
     return empty;
 }
-void app2();
 void app_main()
 {
-    nvs_flash_init();
-    console();
+    esp_reset_reason_t r = esp_reset_reason();
     // app2();
     // return;
+    printf("last reset reason: %d\n",r);
+    esp_err_t err = nvs_flash_init();
+    if(err !=ESP_OK){
+        printf("error1: %s\n",esp_err_to_name(err));
+    };    
+    err = esp_netif_init();
+    if(err !=ESP_OK){
+        printf("error2: %s\n",esp_err_to_name(err));
+    };
+    err = esp_event_loop_create_default();
+    if(err !=ESP_OK){
+        printf("error3: %s\n",esp_err_to_name(err));
+    };
+    wifi();
+    nimble();
+    doTime();
     readVariablesFromNvs();
-    // return;
     if(variablesAreEmpty()){
         writeDefaultValues();        
     }
-    nimble();
-    // setLedStripColor(0,4,4,4);
+    char *argv[3];
+    argv[2] = "http://example.com";
+    doFunction1(3,argv);
+    console();
+    printf("do 1 \"https://example.com\"\n");
+    // doFunction2(3,argv);
+    // console();
+    // printf("do 2 \"https://example.com\"\n");
 }
 
-void doFunction1(){
-    printf("write var to nvs\n");
-    char* varName = "myVar";
-    nvs_handle_t storage;
-    nvs_open("storage", NVS_READWRITE, &storage);
-    nvs_set_str(storage, varName, "asdf");
-    nvs_commit(storage);
-    nvs_close(storage);
-}
-void doFunction2(){
-    // printf("read var from nvs\n");    
-    char*varName = varName;
-    esp_err_t err;
-    nvs_handle_t storage;
-    err = nvs_open("storage", NVS_READWRITE, &storage);
-    if (err != ESP_OK) {
-        printf("Error opening NVS handle: %s\n", esp_err_to_name(err));
+#include "esp_netif.h"
+#include "esp_tls.h"
+#include "esp_tls.h"
+
+extern const uint8_t cStart[] asm("_binary_serverCert_pem_start");
+extern const uint8_t cEnd[]   asm("_binary_serverCert_pem_end");
+extern const uint8_t kStart[] asm("_binary_serverKey_pem_start");
+extern const uint8_t kEnd[]   asm("_binary_serverKey_pem_end");
+extern const uint8_t cStart2[] asm("_binary_serverCert2_pem_start");
+extern const uint8_t cEnd2[]   asm("_binary_serverCert2_pem_end");
+
+#include"esp_https_server.h"
+#define WEB_SERVER "www.example.com"
+#define WEB_PORT "443"
+#define WEB_URL ""
+#include "esp_tls.h"
+
+static const char HTTPS_REQUEST[] =
+    "GET " WEB_URL " HTTP/1.1\r\n"
+    "Host: "WEB_SERVER"\r\n"
+    "User-Agent: esp-idf/1.0 esp32\r\n"
+    "\r\n";
+
+#include "esp_crt_bundle.h"
+
+void https_request_task_bundle(void *pvparameters)
+{
+    args_t *args = (args_t*)pvparameters;
+    esp_tls_cfg_t cfg = {
+        .crt_bundle_attach = esp_crt_bundle_attach,
+    };
+    char * url = args->argv[2];
+    char buf[512];
+    int ret, len;
+    esp_tls_t *tls = esp_tls_init();
+    if (!tls) {
+        printf("Failed to allocate esp_tls handle!\n");
         return;
     }
-    size_t required_size = 0;
-    err = nvs_get_str(storage, varName, NULL, &required_size);
-    if (err != ESP_OK) {
-        if (err == ESP_ERR_NVS_NOT_FOUND){
-
+    if (esp_tls_conn_http_new_sync(url, &cfg, tls) == 1){
+        printf("connection established\n");
+    } else{
+        printf("Failed to establish TLS connection!\n");
+        esp_tls_conn_destroy(tls);
+        vTaskDelete(NULL);
+        return;
+    }
+    size_t written_bytes = 0;
+    do {
+        ret = esp_tls_conn_write(tls, HTTPS_REQUEST + written_bytes, strlen(HTTPS_REQUEST) - written_bytes);
+        if (ret >= 0) {
+            ESP_LOGI(TAG, "%d bytes written", ret);
+            written_bytes += ret;
+        } else if (ret != ESP_TLS_ERR_SSL_WANT_READ && ret != ESP_TLS_ERR_SSL_WANT_WRITE) {
+            ESP_LOGE(TAG, "esp_tls_conn_write returned -0x%x", -ret);
+            break;
         }
-        printf("Error getting size for %s: %s\n", varName, esp_err_to_name(err));
+    } while (written_bytes < strlen(HTTPS_REQUEST));
+
+    // Read HTTPS response
+    ESP_LOGI(TAG, "Reading HTTP response...");
+    do {
+        len = sizeof(buf) - 1;
+        memset(buf, 0x00, sizeof(buf));
+        ret = esp_tls_conn_read(tls, buf, len);
+
+        if (ret == ESP_TLS_ERR_SSL_WANT_READ || ret == ESP_TLS_ERR_SSL_WANT_WRITE) {
+            continue;
+        } else if (ret < 0) {
+            ESP_LOGE(TAG, "esp_tls_conn_read returned -0x%x", -ret);
+            break;
+        } else if (ret == 0) {
+            ESP_LOGI(TAG, "Connection closed");
+            break;
+        }
+
+        len = ret;
+        ESP_LOGD(TAG, "%d bytes read", len);
+        // Print response directly to stdout as it is read
+        for (int i = 0; i < len; i++) {
+            putchar(buf[i]);
+        }
+    } while (1);
+    esp_tls_conn_destroy(tls);
+    vTaskDelete(NULL);
+}
+
+int doFunction1(int argc, char **argv){
+    if (argc != 3){
+        printf("usage: do 1 <uri>\n");
+        return -1;
     }
-    char* var = malloc(required_size);
-    if (var == NULL) {
-        printf("Error allocating memory for %s\n", "var");
+    args_t args = {argc,argv};
+    esp_tls_cfg_t cfg = {
+        .crt_bundle_attach = esp_crt_bundle_attach,
+    };
+    printf("creating task https_request_task: %s\n",argv[2]);
+    xTaskCreate(&https_request_task_bundle, "https_request_task", 8192, &args, 5, NULL);
+    return 0;
+};
+int doFunction2(int argc, char **argv){
+    args_t args = {argc,argv};
+    if (args.argc != 3){
+        printf("usage: do 2 <uri>\n");
+        return -1;
     }
-    err = nvs_get_str(storage, varName, var, &required_size);
-    if (err != ESP_OK) {
-        printf("Error getting value for %s: %s\n", varName, esp_err_to_name(err));
-        free(var);
-        var = NULL;
-    }
-    printf("read var %s:%s\n",varName,var);
+    return 0;
 }
 void app2() {
-    console();
 }

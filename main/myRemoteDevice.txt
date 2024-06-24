@@ -1,5 +1,1 @@
 errors:
-- the modal of add doesnt close after adding
-- the modal of edit doesnt close after saving
-- the edit doesnt edit
-

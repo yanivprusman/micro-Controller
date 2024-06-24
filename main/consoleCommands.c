@@ -65,11 +65,11 @@ int delNvsCB(int argc, char **argv) {
 int doCB(int argc, char **argv) {
     char*s=argv[1];
     int i = atoi(s);
-    void (*doFunctions[])(void) = {
+    int (*doFunctions[])(int argc, char **argv) = {
         doFunction1,
         doFunction2
     };
-    if (i < 1 || i >= sizeof(doFunctions) / sizeof(doFunctions[0])) {
+    if (i < 1 || i >= sizeof(doFunctions) / sizeof(doFunctions[0])+1) {
         if (strcmp(s,"asdf")==0){
             setLedStripColor(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]));
             return 0;
@@ -78,6 +78,6 @@ int doCB(int argc, char **argv) {
             return 1;
         }
     }
-    doFunctions[i]();
+    doFunctions[i-1](argc, argv);
     return 0; 
 }
