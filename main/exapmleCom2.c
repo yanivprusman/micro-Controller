@@ -15,8 +15,6 @@
 #include <esp_system.h>
 #include <esp_https_server.h>
 
-static const char *TAG = "HTTPS";
-
 // Define client certificate
 extern  uint8_t ClientCert_pem_start[] asm("_binary_serverCert_pem_start");
 extern  uint8_t ClientCert_pem_end[]   asm("_binary_serverCert_pem_end");
@@ -102,7 +100,7 @@ static const httpd_uri_t server_uri_post = {
 static httpd_handle_t start_webserver(void)
 {
     // Start the httpd server
-    ESP_LOGI(TAG, "Starting server");
+    printf("Starting server\n");
     
     httpd_ssl_config_t config = HTTPD_SSL_CONFIG_DEFAULT();
     httpd_handle_t server = NULL;
@@ -121,7 +119,7 @@ static httpd_handle_t start_webserver(void)
     }
 
     // Set URI handlers
-    ESP_LOGI(TAG, "Registering URI handlers");
+    printf("Registering URI handlers\n");
     httpd_register_uri_handler(server, &server_uri_get);
     httpd_register_uri_handler(server, &server_uri_post);
     return server;

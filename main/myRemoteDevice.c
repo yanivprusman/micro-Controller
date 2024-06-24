@@ -1,7 +1,7 @@
 #include "myRemoteDevice.h"
 #include "protocol_examples_common.h"
 #include "esp_event.h"
-
+#include "protocol_examples_common.h"
 char * TAG = "MyRemoteDevice";
 
 uint8_t initializedCustomDataTrue[4]  = {0x0, 0x0, 0x0, 0x0};
@@ -156,7 +156,8 @@ void app_main()
     if(err !=ESP_OK){
         printf("error3: %s\n",esp_err_to_name(err));
     };
-    wifi();
+    // wifi();
+    
     nimble();
     doTime();
     readVariablesFromNvs();
@@ -190,13 +191,69 @@ extern const uint8_t cEnd2[]   asm("_binary_serverCert2_pem_end");
 #define WEB_URL ""
 #include "esp_tls.h"
 
-static const char HTTPS_REQUEST[] =
-    "GET " WEB_URL " HTTP/1.1\r\n"
-    "Host: "WEB_SERVER"\r\n"
-    "User-Agent: esp-idf/1.0 esp32\r\n"
-    "\r\n";
+// static const char HTTPS_REQUEST[] =
+//     "GET " WEB_URL " HTTP/1.1\r\n"
+//     "Host: "WEB_SERVER"\r\n"
+//     "User-Agent: esp-idf/1.0 esp32\r\n"
+//     "\r\n";
 
 #include "esp_crt_bundle.h"
+
+void get_host_from_url(const char *url, char *host, size_t host_size) {
+    const char *start;
+    const char *end;
+    size_t len;
+
+    // Find the start of the host
+    if ((start = strstr(url, "://")) != NULL) {
+        start += 3; // Skip "://"
+    } else {
+        start = url; // URL doesn't contain "://", assume it's the beginning
+    }
+
+    // Find the end of the host
+    if ((end = strchr(start, '/')) != NULL) {
+        len = end - start;
+    } else {
+        len = strlen(start);
+    }
+
+    // Ensure the host buffer is large enough
+    if (len >= host_size) {
+        len = host_size - 1; // Truncate if necessary
+    }
+
+    // Copy the host part to the host buffer
+    strncpy(host, start, len);
+    host[len] = '\0'; // Null-terminate the string
+}
+
+char* construct_http_request(const char *url) {
+    char host[256];
+    get_host_from_url(url, host, sizeof(host));
+
+    // Calculate the length of the final HTTP request string
+    size_t request_size = strlen("GET ") + strlen(url) + strlen(" HTTP/1.1\r\n") +
+                          strlen("Host: ") + strlen(host) + strlen("\r\n") +
+                          strlen("User-Agent: esp-idf/1.0 esp32\r\n\r\n") + 1;
+
+    // Allocate memory for the HTTP request string
+    char *httpRequest = (char *)malloc(request_size);
+    if (httpRequest == NULL) {
+        printf("Failed to allocate memory for HTTP request\n");
+        return NULL;
+    }
+
+    // Construct the HTTP request string
+    snprintf(httpRequest, request_size,
+             "GET %s HTTP/1.1\r\n"
+             "Host: %s\r\n"
+             "User-Agent: esp-idf/1.0 esp32\r\n"
+             "\r\n",
+             url, host);
+
+    return httpRequest;
+}
 
 void https_request_task_bundle(void *pvparameters)
 {
@@ -210,30 +267,35 @@ void https_request_task_bundle(void *pvparameters)
     esp_tls_t *tls = esp_tls_init();
     if (!tls) {
         printf("Failed to allocate esp_tls handle!\n");
-        return;
+        vTaskDelete(NULL);
     }
-    if (esp_tls_conn_http_new_sync(url, &cfg, tls) == 1){
-        printf("connection established\n");
-    } else{
-        printf("Failed to establish TLS connection!\n");
+    ret =esp_tls_conn_http_new_sync(url, &cfg, tls); 
+    if (ret != 1){
+        printf("Failed to establish TLS connection: %d\n",ret);
         esp_tls_conn_destroy(tls);
         vTaskDelete(NULL);
-        return;
     }
+    char *httpRequest = construct_http_request(url);
+    if (httpRequest == NULL) {
+        vTaskDelete(NULL);
+    }
+        // printf("%s", httpRequest);
+        // free(httpRequest); // Don't forget to free the allocated memory
+
     size_t written_bytes = 0;
     do {
-        ret = esp_tls_conn_write(tls, HTTPS_REQUEST + written_bytes, strlen(HTTPS_REQUEST) - written_bytes);
+        ret = esp_tls_conn_write(tls, httpRequest + written_bytes, strlen(httpRequest) - written_bytes);
         if (ret >= 0) {
-            ESP_LOGI(TAG, "%d bytes written", ret);
+            printf("%d bytes written\n", ret);
             written_bytes += ret;
         } else if (ret != ESP_TLS_ERR_SSL_WANT_READ && ret != ESP_TLS_ERR_SSL_WANT_WRITE) {
-            ESP_LOGE(TAG, "esp_tls_conn_write returned -0x%x", -ret);
+            printf("esp_tls_conn_write returned -0x%x\n", -ret);
             break;
         }
-    } while (written_bytes < strlen(HTTPS_REQUEST));
+    } while (written_bytes < strlen(httpRequest));
 
     // Read HTTPS response
-    ESP_LOGI(TAG, "Reading HTTP response...");
+    printf("Reading HTTP response...\n");
     do {
         len = sizeof(buf) - 1;
         memset(buf, 0x00, sizeof(buf));
@@ -242,15 +304,15 @@ void https_request_task_bundle(void *pvparameters)
         if (ret == ESP_TLS_ERR_SSL_WANT_READ || ret == ESP_TLS_ERR_SSL_WANT_WRITE) {
             continue;
         } else if (ret < 0) {
-            ESP_LOGE(TAG, "esp_tls_conn_read returned -0x%x", -ret);
+            printf("esp_tls_conn_read returned -0x%x\n", -ret);
             break;
         } else if (ret == 0) {
-            ESP_LOGI(TAG, "Connection closed");
+            printf(TAG, "Connection closed\n");
             break;
         }
 
         len = ret;
-        ESP_LOGD(TAG, "%d bytes read", len);
+        printf("%d bytes read\n", len);
         // Print response directly to stdout as it is read
         for (int i = 0; i < len; i++) {
             putchar(buf[i]);
