@@ -158,7 +158,6 @@ void app_main()
     };
     // wifi();
     example_connect();
-    
     nimble();
     doTime();
     readVariablesFromNvs();
@@ -231,7 +230,7 @@ void get_host_from_url(const char *url, char *host, size_t host_size) {
 char* construct_http_request(const char *url) {
     char host[256];
     get_host_from_url(url, host, sizeof(host));
-
+    printf("host: %s\n",host);
     // Calculate the length of the final HTTP request string
     size_t request_size = strlen("GET ") + strlen(url) + strlen(" HTTP/1.1\r\n") +
                           strlen("Host: ") + strlen(host) + strlen("\r\n") +
@@ -277,11 +276,10 @@ void https_request_task_bundle(void *pvparameters)
     }
     char *httpRequest = construct_http_request(url);
     if (httpRequest == NULL) {
+        free(httpRequest);
         vTaskDelete(NULL);
     }
-        // printf("%s", httpRequest);
-        // free(httpRequest); // Don't forget to free the allocated memory
-
+    
     size_t written_bytes = 0;
     do {
         ret = esp_tls_conn_write(tls, httpRequest + written_bytes, strlen(httpRequest) - written_bytes);
@@ -294,8 +292,6 @@ void https_request_task_bundle(void *pvparameters)
         }
     } while (written_bytes < strlen(httpRequest));
 
-    // Read HTTPS response
-    printf("Reading HTTP response...\n");
     do {
         len = sizeof(buf) - 1;
         memset(buf, 0x00, sizeof(buf));
@@ -313,12 +309,12 @@ void https_request_task_bundle(void *pvparameters)
 
         len = ret;
         printf("%d bytes read\n", len);
-        // Print response directly to stdout as it is read
         for (int i = 0; i < len; i++) {
             putchar(buf[i]);
         }
     } while (1);
     esp_tls_conn_destroy(tls);
+    free(httpRequest);
     vTaskDelete(NULL);
 }
 
@@ -331,7 +327,6 @@ int doFunction1(int argc, char **argv){
     esp_tls_cfg_t cfg = {
         .crt_bundle_attach = esp_crt_bundle_attach,
     };
-    printf("creating task https_request_task: %s\n",argv[2]);
     xTaskCreate(&https_request_task_bundle, "https_request_task", 8192, &args, 5, NULL);
     return 0;
 };

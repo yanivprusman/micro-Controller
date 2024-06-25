@@ -30,7 +30,8 @@
 #include "examplecom.h"
 #include "examplecom2.h"
 #include "esp_wifi.h"
-#include "timeAfterTime.h"
+// #include "timeAfterTime.h"
+#include "time_sync.h"
 
 extern char *TAG ;
 
