@@ -164,9 +164,9 @@ void app_main()
     if(variablesAreEmpty()){
         writeDefaultValues();        
     }
-    char *argv[3];
-    argv[2] = "https://example.com";
-    doFunction1(3,argv);
+    // char *argv[3];
+    // argv[2] = "https://example.com";
+    // doFunction1(3,argv);
     console();
     printf("do 1 \"https://example.com\"\n");
 }
@@ -182,11 +182,14 @@ int doFunction1(int argc, char **argv){
     return 0;
 };
 int doFunction2(int argc, char **argv){
-    args_t args = {argc,argv};
-    if (args.argc != 3){
-        printf("usage: do 2 <uri>\n");
-        return -1;
-    }
+    xTaskCreate(&ota_task, "asdf", 8192, NULL, 5, NULL);
+
+    // args_t args = {argc,argv};
+    // if (args.argc != 3){
+    //     printf("usage: do 2 <uri>\n");
+    //     return -1;
+    // }
+    
     return 0;
 }
 void app2() {
