@@ -173,12 +173,14 @@ void app_main()
 
 
 int doFunction1(int argc, char **argv){
+    printf("new version 2\n");
     if (argc != 3){
         printf("usage: do 1 <uri>\n");
         return -1;
     }
     args_t args = {argc,argv};
-    requestTaskBundle(argv[2]);
+    // requestTaskBundle(argv[2]);
+
     return 0;
 };
 int doFunction2(int argc, char **argv){

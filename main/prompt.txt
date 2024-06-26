@@ -1,0 +1,4 @@
+prompt:
+in esp idf,
+i want to organize a mechanism that uses the base firmware i created (myRemoteDevice.bin)
+and enables the user to download his code to anable additional functionalities, and it will be easy for user to switch one vestion of his code with another ( but i want the device to always boot from my myRemoteDevice.bin)
