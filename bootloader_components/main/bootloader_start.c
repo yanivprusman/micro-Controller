@@ -32,7 +32,7 @@ void __attribute__((noreturn)) call_start_cpu0(void)
 
     // 2.1 Print a custom message!
     esp_rom_printf("GonnaGetGet\n");
-
+    
     // 3. Load the app image for booting
     bootloader_utility_load_boot_image(&bs, boot_index);
 }
