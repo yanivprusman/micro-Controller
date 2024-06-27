@@ -2024,6 +2024,12 @@ CONFIG_WIFI_PROV_BLE_SEC_CONN=y
 CONFIG_WIFI_PROV_STA_ALL_CHANNEL_SCAN=y
 # CONFIG_WIFI_PROV_STA_FAST_SCAN is not set
 # end of Wi-Fi Provisioning Manager
+
+#
+# Bootloader welcome message
+#
+CONFIG_EXAMPLE_BOOTLOADER_WELCOME_MESSAGE="Custom bootloader message defined in the KConfig file."
+# end of Bootloader welcome message
 # end of Component config
 
 # CONFIG_IDF_EXPERIMENTAL_FEATURES is not set
