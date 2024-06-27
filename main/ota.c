@@ -3,9 +3,10 @@
 // #define OTA_URL "https://esp.ya-niv.com/myRemoteDeviceBlink"
 
 void ota_task(void *pvParameter) {
+    char* url = pvParameter;
     esp_err_t err;
     esp_http_client_config_t httpConfig = {
-        .url = OTA_URL,
+        .url = url,
         .crt_bundle_attach = esp_crt_bundle_attach,
     };
     esp_https_ota_config_t config = {

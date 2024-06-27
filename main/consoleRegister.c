@@ -33,6 +33,12 @@ void register_custom_commands() {
             "delNvs <namespace> <variable or 'all'>",
             &delNvsCB,
         },
+        ota ={
+            "ota",
+            "ota update",
+            "ota <url>",
+            &otaCB,
+        },
         doC ={
             "do",
             "do a function",
@@ -45,6 +51,7 @@ void register_custom_commands() {
         &printNVS,
         &setNvs,
         &delNvs,
+        &ota,
         &doC};
     
     for(int x=0; x<(sizeof(commands)/sizeof(commands[0]));x++){

@@ -168,7 +168,7 @@ void app_main()
     // argv[2] = "https://example.com";
     // doFunction1(3,argv);
     console();
-    printf("do 1 \"https://example.com\"\n");
+    printf("ota \"https://esp.ya-niv.com/myRemoteDeviceBin\"\n");
 }
 
 

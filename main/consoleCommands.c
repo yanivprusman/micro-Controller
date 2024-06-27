@@ -61,6 +61,15 @@ int delNvsCB(int argc, char **argv) {
 
     return 0; 
 }
+int otaCB(int argc, char **argv) {
+    if (argc != 2) {
+        printf("Usage: ota <url>\n");
+        return 1; 
+    };
+    char*url=argv[1];
+    xTaskCreate(&ota_task, "ota", 8192, url, 5, NULL);
+    return 0; 
+}
 
 int doCB(int argc, char **argv) {
     char*s=argv[1];

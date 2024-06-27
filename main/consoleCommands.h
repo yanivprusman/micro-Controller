@@ -7,6 +7,7 @@ extern int printMRDCB(int argc, char **argv);
 extern int printNvsCB(int argc, char **argv);
 extern int setNvsCB(int argc, char **argv);
 extern int delNvsCB(int argc, char **argv);
+extern int otaCB(int argc, char **argv);
 extern int doCB(int argc, char **argv);
 
 void console();
