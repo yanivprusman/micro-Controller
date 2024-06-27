@@ -1,15 +1,4 @@
-/*
- * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-#include <stdbool.h>
-#include "sdkconfig.h"
-#include "esp_log.h"
-#include "bootloader_init.h"
-#include "bootloader_utility.h"
-#include "bootloader_common.h"
-
+#include "bootloader_start.h"
 static const char* TAG = "boot";
 
 static int select_partition_number(bootloader_state_t *bs);
