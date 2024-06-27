@@ -1,8 +1,35 @@
-#include "bootloader_start.h"
+/*
+ * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+#include <stdbool.h>
+#include "sdkconfig.h"
+#include "esp_log.h"
+#include "bootloader_init.h"
+#include "bootloader_utility.h"
+#include "bootloader_common.h"
 static const char* TAG = "boot";
 
 static int select_partition_number(bootloader_state_t *bs);
+void printBS(bootloader_state_t *bs){
+    
+    esp_rom_printf("boot state:\n");
+    esp_rom_printf("ota_info\n");
+    esp_rom_printf("-offset: %d\n", bs->ota_info.offset);
+    esp_rom_printf("-size: %d\n", bs->ota_info.size);
+    esp_rom_printf("factory\n");
+    esp_rom_printf("-offset: %d\n", bs->factory.offset);
+    esp_rom_printf("-size: %d\n", bs->factory.size);
+    esp_rom_printf("test\n");
+    esp_rom_printf("-offset: %d\n", bs->test.offset);
+    esp_rom_printf("-size: %d\n;", bs->test.size);
+    esp_rom_printf("ota[MAX_OTA_SLOTS]: %d\n",MAX_OTA_SLOTS);
+    esp_rom_printf("app_count: %d\n", bs->app_count);
+    esp_rom_printf("selected_subtype %d\n;", bs->selected_subtype);
 
+
+}
 /*
  * We arrive here after the ROM bootloader finished loading this second stage bootloader from flash.
  * The hardware is mostly uninitialized, flash cache is down and the app CPU is in reset.
@@ -29,10 +56,7 @@ void __attribute__((noreturn)) call_start_cpu0(void)
     if (boot_index == INVALID_INDEX) {
         bootloader_reset();
     }
-
-    // 2.1 Print a custom message!
-    esp_rom_printf("GonnaGetGet\n");
-    
+    printBS(&bs);
     // 3. Load the app image for booting
     bootloader_utility_load_boot_image(&bs, boot_index);
 }

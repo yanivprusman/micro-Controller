@@ -9,6 +9,12 @@ dependencies:
     source:
       type: idf
     version: 5.4.0
-manifest_hash: b2f659ab374cf8e1c728a3ccea5308f76e3a3aef00a1742a7afeca03d594d450
+  protocol_examples_common:
+    component_hash: null
+    source:
+      path: C:\101_coding\programs\esp-idf\examples\common_components\protocol_examples_common
+      type: local
+    version: '*'
+manifest_hash: 1eb118d0752feb5288b91817d29b869cd06448c70ac9b314ee70a2132b05cd76
 target: esp32c3
 version: 1.0.0

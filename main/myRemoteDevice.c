@@ -171,6 +171,9 @@ void app_main()
     printf("ota \"https://esp.ya-niv.com/myRemoteDeviceBin\"\n");
 }
 
+#include <esp_partition.h>
+// #include "bootloader_support/include/bootloader_utility.h"
+// #include <bootloader_utility.h>
 
 int doFunction1(int argc, char **argv){
     printf("new version 2\n");
@@ -178,8 +181,27 @@ int doFunction1(int argc, char **argv){
         printf("usage: do 1 <uri>\n");
         return -1;
     }
-    args_t args = {argc,argv};
-    // requestTaskBundle(argv[2]);
+   // Define a variable to hold the partition iterator
+    // esp_partition_iterator_t iterator = NULL;
+    // const esp_partition_t *partition = NULL;
+    // int ota_count = 0;
+
+    // // Iterate through all partitions of type 'app'
+    // iterator = esp_partition_find(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_OTA_0, NULL);
+    // while (iterator != NULL) {
+    //     partition = esp_partition_get(iterator);
+    //     if (partition == NULL) {
+    //         break;
+    //     }
+    //     ota_count++;
+    //     iterator = esp_partition_next(iterator);
+    // }
+
+    // // Clean up the iterator
+    // esp_partition_iterator_release(iterator);
+
+    // // 'ota_count' now holds the number of OTA partitions (e.g., OTA_0, OTA_1)
+
 
     return 0;
 };
