@@ -140,6 +140,15 @@ bool variablesAreEmpty(){
 }
 void app_main()
 {
+      while (1) {
+        // Main application loop
+        
+        // Example: Print a message every second
+        printf("Hello, world!\n");
+        vTaskDelay(pdMS_TO_TICKS(1000));  // Delay for 1000 milliseconds
+    }
+    printf("PRINT?\n");
+    return;
     test();
     esp_reset_reason_t r = esp_reset_reason();
     printf("last reset reason: %d\n",r);
