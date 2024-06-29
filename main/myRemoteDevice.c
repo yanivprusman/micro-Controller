@@ -140,6 +140,7 @@ bool variablesAreEmpty(){
 }
 void app_main()
 {
+    test();
     esp_reset_reason_t r = esp_reset_reason();
     printf("last reset reason: %d\n",r);
     esp_err_t err = nvs_flash_init();
@@ -190,7 +191,7 @@ int getNumberOfAppPartitions(){
     return ota_count;
 
 }
-void print_partition_info() {
+void myPrint_partition_info() {
     const esp_partition_t* partition;
     esp_partition_iterator_t it = esp_partition_find(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_ANY, NULL);
     
@@ -247,26 +248,110 @@ void call_ota_0() {
     ota_app_main();
 }
 
+
+void hex_to_number(const char *hex_str, long *number) {
+    *number = strtol(hex_str, NULL, 16);
+}
+
+void number_to_hex(long number, char *hex_str, size_t hex_str_size) {
+    snprintf(hex_str, hex_str_size, "%lX", number);
+}
+void doHex(){
+    const char *hex_str = "1A3F";
+    long number;
+    hex_to_number(hex_str, &number);
+    printf("Hex string: %s\n", hex_str);
+    printf("Converted number: %ld\n", number);
+
+    char hex_str_converted[20];
+    number_to_hex(number, hex_str_converted, sizeof(hex_str_converted));
+    printf("Number: %ld\n", number);
+    printf("Converted hex string: %s\n", hex_str_converted);
+    number = 6703;
+    char hex_str2[20];
+    sprintf(hex_str2, "%lX", number);
+    printf("Number: %ld\n", number);
+    printf("Converted hex string: %s\n", hex_str);
+    const char *hex_str3 = "1A3F";
+    number = strtol(hex_str3, NULL, 16);
+    printf("Hex string: %s\n", hex_str3);
+    printf("Converted number: %ld\n", number);
+}
+
+#include"mySection.h"
+// function_ptr_t section_start= (function_ptr_t)theDo;
+// function_ptr_t __attribute__((section(".mySection"))) myFunctionPointer = theDo;
+// extern function_ptr_t _mySection_start ;//= (function_ptr_t)theDo;
+// _mySection_start= (function_ptr_t)theDo;
+// function_ptr_t section_start;
+// section_start =(function_ptr_t)7;
+// section_start = (function_ptr_t);
+// *section_start = &theDo;
+// (*section_start)();
+// void dummy_function(void) __attribute__((section(".mySection")));
+// void dummy_function(void) {
+    // This function does nothing and is only used to ensure .mySection is included in the output
+// }
 int doFunction1(int argc, char **argv){
-    // if (argc != 3){
-    //     printf("usage: do 1 <uri>\n");
+    // static function_ptr_t __attribute__((section(".mySection"))) myFunctionPointer = theDo;
+    // myFunctionPointer = theDo;
+    // section_start();
+    // function_ptr_t fp 
+    printf("_mySection_start:%p\n",_mySection_start);
+    _mySection_start = 7;
+    printf("theDo:%p\n",theDo);
+    printf("&theDo:%p\n",&theDo);
+    // printf("myFunctionPointer:%p\n",myFunctionPointer);
+    // printf("&myFunctionPointer:%p\n",&myFunctionPointer);
+    printf("&_mySection_start:%p\n",&_mySection_start);
+    printf("&_mySection_end:%p\n",&_mySection_end);
+    // printf("_mySection_start:%p\n",_mySection_start);
+    // _mySection_start();
+    // myFunctionPointer();
+    // data1();
+    // printf("address of theDo:%p\n",&theDo);
+    // printf("address of theDo:%p\n",theDoP);
+    // theDo();
+    // function_ptr_t theDo = (function_ptr_t)RTC_LOCATION;
+    // // const void* addr = *(const void**)RTC_LOCATION;
+    // // function_ptr_t theDo = (function_ptr_t)addr;
+    // esp_rom_delay_us(2000000); 
+    // if (theDo != NULL) {
+    //     theDo();
+    // } else {
+    //     printf("Failed to get app_main address.\n");
+    // }
+    // if (argc != 2){
+    //     printf("usage: do 1\n");
     //     return -1;
     // }
+    // theDo();
     // int a = getNumberOfAppPartitions();
     // printf("partitions:%d\n",a);
-    print_partition_info();
+    // print_partition_info();
     return 0;
 };
+#include"esp_system.h"
 int doFunction2(int argc, char **argv){
+    printf("reason of restart should be: %d",12);//SW_CPU_RESET
+    esp_restart();    
     if (argc != 3){
         printf("usage: do 2 <address>\n");
         return -1;
     }
-    address = atoi(argv[2]);
     // xTaskCreate(&ota_task, "asdf", 8192, NULL, 5, NULL);
-    xTaskCreate((TaskFunction_t)call_ota_0, "call_ota_0", 8192, NULL, 5, NULL);    
     return 0;
 }
 void app2() {
+    doFunction1(0,0);
     console();
+}
+void theDo(){
+    printf("**********************************\n");
+    printf("**********************************\n");
+    printf("\n");
+    printf("in the do\n");
+    printf("\n");
+    printf("**********************************\n");
+    printf("**********************************\n");
 }

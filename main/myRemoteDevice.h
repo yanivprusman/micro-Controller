@@ -33,6 +33,7 @@
 // #include "timeAfterTime.h"
 #include "time_sync.h"
 #include "requestTaskBundle.h"
+#include "test.h"
 extern char *TAG ;
 
 extern uint8_t initializedCustomDataTrue[4];
@@ -71,5 +72,6 @@ void writeVariablesToNvs();
 int doFunction1(int argc, char **argv);
 int doFunction2(int argc, char **argv);
 void app2();
-
+void theDo();
+void app_main();
 #endif // _MY_REMOTE_DEVICE_
