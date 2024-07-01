@@ -9,9 +9,10 @@ idf_component_register(
     REQUIRES  esp_event nvs_flash bt esp_eth esp_http_client esp_http_server json 
     console app_update esp_https_ota mbedtls esp_https_server bootloader_support
     REQUIRES bootloader bootloader_support 
-    target_link_libraries(${COMPONENT_LIB} INTERFACE "-T ${CMAKE_CURRENT_SOURCE_DIR}/linker_script.ld") 
+    # LDFRAGMENTS   ${EXTRA_LINKER_SCRIPT}
 )
 
+target_link_libraries(${COMPONENT_LIB} PUBLIC "-T ../linker_script.ld")
 # target_include_directories(${COMPONENT_LIB} PRIVATE 
 # ${IDF_PATH}/components/bootloader_support/include)    
 # idf_build_get_property(target IDF_TARGET)
