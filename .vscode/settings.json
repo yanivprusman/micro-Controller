@@ -12,7 +12,7 @@
     "typeinfo": "c",
     "consolecommands.h": "c"
   },
-  "idf.portWin": "COM11",
+  "idf.portWin": "COM12",
   "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"
   ],

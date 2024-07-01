@@ -1,4 +1,7 @@
 prompt:
+in esp idf write a linkerSecript.ld file define mySection to reside in non voaltile rtc memory
+write code that prints using printf with \n the valiable at the beginning of the section (print it as pointer %p) and then set its value to 7 and print it again.
+i expect the value to retain and when i boot again the value wil stay 7
 
 task:
 - build without errors

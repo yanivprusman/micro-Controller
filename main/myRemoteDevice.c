@@ -292,19 +292,44 @@ void doHex(){
 // void dummy_function(void) {
     // This function does nothing and is only used to ensure .mySection is included in the output
 // }
+int myVariable __attribute__((section(".rtc_section.mySection"))) = 0;
+
 int doFunction1(int argc, char **argv){
+    /* Print the address of myVariable */
+    printf("Address of myVariable: %p\n", (void *)&myVariable);
+
+    /* Set its value to 7 */
+    myVariable = 7;
+
+    /* Print the value (should be 7) */
+    printf("Value of myVariable: %d\n", myVariable);
+
+    // printf("var: %p\n", (void*)var[0]);printf("var[0] as address-like: %p\n", (void*)(uintptr_t)var[0]);
+
+
+    // printf("_mySection_start: %p\n", (void*)_mySection_start);
+    // Cast _mySection_start to a pointer to unsigned char (byte) 
+    // and then set the first byte to 7
+    // printf("_mySection_start[0]: %d\n", *((unsigned char*)_mySection_start));
+    // *((unsigned char*)_mySection_start) = 7;
+    
+    // printf("_mySection_start[0]: %d\n", *((unsigned char*)_mySection_start));
+    // printf("_mySection_start: %p\n", (void*)_mySection_start);
+    // _mySection_start[0] = 7;
+    // printf("_mySection_start[0]: %d\n", _mySection_start[0]);
     // static function_ptr_t __attribute__((section(".mySection"))) myFunctionPointer = theDo;
     // myFunctionPointer = theDo;
     // section_start();
     // function_ptr_t fp 
-    printf("_mySection_start:%p\n",_mySection_start);
-    _mySection_start = 7;
-    printf("theDo:%p\n",theDo);
-    printf("&theDo:%p\n",&theDo);
+    // printf("_mySection_start:%p\n",(void*)_mySection_start[0]);
+    // _mySection_start[0] = 7;
+    // printf("_mySection_start:%p\n",(void*)_mySection_start[0]);
+    // printf("theDo:%p\n",theDo);
+    // printf("&theDo:%p\n",&theDo);
     // printf("myFunctionPointer:%p\n",myFunctionPointer);
     // printf("&myFunctionPointer:%p\n",&myFunctionPointer);
-    printf("&_mySection_start:%p\n",&_mySection_start);
-    printf("&_mySection_end:%p\n",&_mySection_end);
+    // printf("&_mySection_start:%p\n",&_mySection_start);
+    // printf("&_mySection_end:%p\n",&_mySection_end);
     // printf("_mySection_start:%p\n",_mySection_start);
     // _mySection_start();
     // myFunctionPointer();
