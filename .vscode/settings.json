@@ -1,7 +1,7 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
   "idf.flashType": "UART",
-  "idf.adapterTargetName": "esp32c3",
+  "idf.adapterTargetName": "esp32s3",
   "files.associations": {
     "ble_svc_gatt.h": "c",
     "stdio.h": "c",
@@ -14,6 +14,8 @@
   },
   "idf.portWin": "COM11",
   "idf.openOcdConfigs": [
-    "board/esp32c3-builtin.cfg"
-  ]
+    "board/esp32s3-builtin.cfg"
+  ],
+    "cmake.generator": "Ninja" 
+    // "cmake.cmakePath": "C:\\Program Files\\CMake\\bin\\cmake.exe" 
 }

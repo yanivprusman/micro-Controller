@@ -1,5 +1,5 @@
 SECTIONS
-{
+{/*
     .mySection (NOLOAD) :
     {
         . = ALIGN(4);
@@ -8,4 +8,5 @@ SECTIONS
         . = _mySection_start + 0x1000; 
         _mySection_end = .;
     } > rtc_slow_seg
+    */
 }

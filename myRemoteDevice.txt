@@ -1,0 +1,12 @@
+prompt:
+
+task:
+- build without errors
+    build directory
+        ?bootloader/CMakeCache.txt
+    sdkconfig
+        CONFIG_IDF_TARGET="esp32c3"
+        CONFIG_IDF_TARGET_ESP32C3=y
+        CONFIG_BT_NIMBLE_ENABLED=y
+        CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+- run without rebooting
