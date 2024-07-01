@@ -13,6 +13,12 @@ idf_component_register(
 )
 
 target_link_libraries(${COMPONENT_LIB} PUBLIC "-T ../linker_script.ld")
+add_custom_command(TARGET ${COMPONENT_LIB}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${COMPONENT_LIB}> ${CMAKE_SOURCE_DIR}/../main
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/myRemoteDevice.h ${CMAKE_SOURCE_DIR}/../main
+    COMMENT "Copying built archive file and header to parent directory...")
+
 # target_include_directories(${COMPONENT_LIB} PRIVATE 
 # ${IDF_PATH}/components/bootloader_support/include)    
 # idf_build_get_property(target IDF_TARGET)
