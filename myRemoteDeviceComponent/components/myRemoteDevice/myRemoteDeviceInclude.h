@@ -1,0 +1,4 @@
+#ifndef _MY_REMOTE_DEVICE_INCLUDE_
+#define _MY_REMOTE_DEVICE_INCLUDE_
+void myRemoteDecive();
+#endif // _MY_REMOTE_DEVICE_INCLUDE_

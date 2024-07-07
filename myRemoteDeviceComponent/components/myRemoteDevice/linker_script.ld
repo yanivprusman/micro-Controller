@@ -5,9 +5,9 @@ MEMORY
 }
 
 /* Define a section for RTC memory */
-rtc_section :
+SECTIONS
 {
-  mySection :
+  .mySection :
   {
     KEEP(*(mySection))  /* Keep the content of this section */
   } > rtc_data_mem

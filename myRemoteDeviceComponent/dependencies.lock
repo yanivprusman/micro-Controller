@@ -16,6 +16,6 @@ dependencies:
       path: C:\101_coding\106_Espressif_extracted\frameworks\esp-idf-v5.2.2\examples\common_components\protocol_examples_common
       type: local
     version: '*'
-manifest_hash: 92c7b1202a52b5e719d223fac8b6b312b12d1045e79ff0f15e415593a5d90416
+manifest_hash: 131adf365c97ab2b276f986ef01f3bf3c11d2ae5194f98d770cb88177c0ae6b4
 target: esp32s3
 version: 1.0.0

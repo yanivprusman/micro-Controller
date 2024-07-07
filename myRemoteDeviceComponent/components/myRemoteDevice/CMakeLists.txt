@@ -1,18 +1,13 @@
 
 idf_component_register(
     SRCS "requestTaskBundle.c" "time_sync.c" "root_ca_cert.c" "exapmleCom2.c" "exampleCom.c" "wifi.c" "ota.c" "consoleCommands.c" "consoleRegister.c" "ble.c" "strip.c" "nvsFunctions.c" "myRemoteDevice.c"  
-    # SRCS "../../109_smallProject/main/smallProject.c"
     INCLUDE_DIRS "."  
-    # EMBED_TXTFILES ${project_dir}/certs/serverCert.pem
-    # ${project_dir}/certs/serverKey.pem
-    # ${project_dir}/certs/serverCert2.pem
     REQUIRES  esp_event nvs_flash bt esp_eth esp_http_client esp_http_server json 
     console app_update esp_https_ota mbedtls esp_https_server bootloader_support
     REQUIRES bootloader bootloader_support 
     # LDFRAGMENTS   ${EXTRA_LINKER_SCRIPT}
 )
-
-target_link_libraries(${COMPONENT_LIB} PUBLIC "-T ../linker_script.ld")
+target_link_libraries(${COMPONENT_LIB} PUBLIC "-T ${CMAKE_CURRENT_SOURCE_DIR}/linker_script.ld")
 add_custom_command(TARGET ${COMPONENT_LIB}
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${COMPONENT_LIB}> ${CMAKE_SOURCE_DIR}/../main

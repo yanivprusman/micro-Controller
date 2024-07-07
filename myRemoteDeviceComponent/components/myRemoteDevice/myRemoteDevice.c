@@ -138,7 +138,7 @@ bool variablesAreEmpty(){
     }
     return empty;
 }
-void app_main()
+void myRemoteDevice()
 {
     // test();
     esp_reset_reason_t r = esp_reset_reason();
