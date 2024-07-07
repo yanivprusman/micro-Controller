@@ -10,5 +10,5 @@ idf_component_register(
      
 
 add_prebuilt_library(myRemoteDevice "${MRD_LIB}"
-PRIV_REQUIRES spi_flash app_update log console espressif__led_strip)
+PRIV_REQUIRES spi_flash app_update log console espressif__led_strip bt json protocol_examples_common)
 target_link_libraries(${COMPONENT_LIB} PRIVATE myRemoteDevice)

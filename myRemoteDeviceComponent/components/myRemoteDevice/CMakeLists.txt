@@ -5,7 +5,6 @@ idf_component_register(
     REQUIRES  esp_event nvs_flash bt esp_eth esp_http_client esp_http_server json 
     console app_update esp_https_ota mbedtls esp_https_server bootloader_support
     REQUIRES bootloader bootloader_support 
-    # LDFRAGMENTS   ${EXTRA_LINKER_SCRIPT}
 )
 target_link_libraries(${COMPONENT_LIB} PUBLIC "-T ${CMAKE_CURRENT_SOURCE_DIR}/linker_script.ld")
 add_custom_command(TARGET ${COMPONENT_LIB}
@@ -13,17 +12,3 @@ add_custom_command(TARGET ${COMPONENT_LIB}
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${COMPONENT_LIB}> ${CMAKE_SOURCE_DIR}/../main
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/myRemoteDevice.h ${CMAKE_SOURCE_DIR}/../main
     COMMENT "Copying built archive file and header to parent directory...")
-
-# target_include_directories(${COMPONENT_LIB} PRIVATE 
-# ${IDF_PATH}/components/bootloader_support/include)    
-# idf_build_get_property(target IDF_TARGET)
-# set(target_folder "${target}")
-
-# # message(STATUS, "Target FOLDER:${target_folder}\n")
-
-# set(scripts "${IDF_PATH}/components/bootloader/subproject/main/ld/${target_folder}/bootloader.ld"
-#             "${IDF_PATH}/components/bootloader/subproject/main/ld/${target_folder}/bootloader.rom.ld")
-
-# target_linker_script(${COMPONENT_LIB} INTERFACE "${scripts}")
-# set(include_dirs "include" "bootloader_flash/include"
-# "private_include")

@@ -155,8 +155,8 @@ void myRemoteDevice()
     if(err !=ESP_OK){
         printf("error3: %s\n",esp_err_to_name(err));
     };
-    app2();
-    return;
+    // app2();
+    // return;
     // wifi();
     example_connect(); 
     nimble();
