@@ -10,7 +10,8 @@
     "gpio.h": "c",
     "led_strip.h": "c",
     "typeinfo": "c",
-    "consolecommands.h": "c"
+    "consolecommands.h": "c",
+    "myremotedevice.h": "c"
   },
   "idf.portWin": "COM12",
   "idf.openOcdConfigs": [

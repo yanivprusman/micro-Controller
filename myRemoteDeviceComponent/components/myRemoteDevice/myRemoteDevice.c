@@ -64,14 +64,16 @@ void readVariablesFromNvs(){
     nvs_handle_t storage;
     err = nvs_open("storage", NVS_READWRITE, &storage);
     if (err != ESP_OK) {
-        printf("Error opening NVS handle: %s", esp_err_to_name(err));
+        printf("Error opening NVS handle: %s\n", esp_err_to_name(err));
         return;
     }
+
     for (size_t i = 0; i < NUM_VARIABLES; ++i) {
         size_t required_size = 0;
         err = nvs_get_str(storage, variables[i]->nvsKey, NULL, &required_size);
         if (err != ESP_OK) {
-            printf("Error getting size for %s: %s", variables[i]->name, esp_err_to_name(err));
+            printf("i = %d\n",i);
+            printf("Error getting size for %s: %s\n", variables[i]->name, esp_err_to_name(err));
             continue;
         }
         variables[i]->value = malloc(required_size);
@@ -165,6 +167,7 @@ void myRemoteDevice()
     if(variablesAreEmpty()){
         writeDefaultValues();        
     }
+    printf("after 5\n");
     // char *argv[3];
     // argv[2] = "https://example.com";
     // doFunction1(3,argv);
@@ -379,4 +382,9 @@ void theDo(){
     printf("\n");
     printf("**********************************\n");
     printf("**********************************\n");
+}
+
+void app_main2(){
+
+    printf("hi\n");
 }

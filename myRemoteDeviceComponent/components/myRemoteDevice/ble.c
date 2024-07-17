@@ -167,6 +167,7 @@ void ble_app_advertise(void)
     fields.name_is_complete = 1;
     uint16_t company_id = 0xFFFA;
     uint8_t custom_data[4];
+    if (initialized.value==NULL) initialized.value = INITIALIZED_FALSE_STRING;
     if (strcmp(initialized.value, INITIALIZED_TRUE_STRING) == 0){
         printf("my remote device id:%d\n",atoi(myRemoteDeviceID.value));
         initializedCustomDataTrue[3] = atoi(myRemoteDeviceID.value);
